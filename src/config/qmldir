@@ -1,0 +1,19 @@
+module src.config
+singleton Config 1.0 Config.qml
+AppearanceConfig 1.0 AppearanceConfig.qml
+GeneralConfig 1.0 GeneralConfig.qml
+BackgroundConfig 1.0 BackgroundConfig.qml
+BarConfig 1.0 BarConfig.qml
+BorderConfig 1.0 BorderConfig.qml
+DashboardConfig 1.0 DashboardConfig.qml
+ControlCenterConfig 1.0 ControlCenterConfig.qml
+LauncherConfig 1.0 LauncherConfig.qml
+NotifsConfig 1.0 NotifsConfig.qml
+OsdConfig 1.0 OsdConfig.qml
+SessionConfig 1.0 SessionConfig.qml
+SidebarConfig 1.0 SidebarConfig.qml
+ServiceConfig 1.0 ServiceConfig.qml
+UserPaths 1.0 UserPaths.qml
+UtilitiesConfig 1.0 UtilitiesConfig.qml
+WInfoConfig 1.0 WInfoConfig.qml
+LockConfig 1.0 LockConfig.qml
