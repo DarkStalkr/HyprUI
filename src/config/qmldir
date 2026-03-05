@@ -1,4 +1,4 @@
-module src.config
+module config
 singleton Config 1.0 Config.qml
 AppearanceConfig 1.0 AppearanceConfig.qml
 GeneralConfig 1.0 GeneralConfig.qml

@@ -22,30 +22,44 @@ Singleton {
     readonly property string sunset: cc ? Qt.formatDateTime(new Date(cc.sunset), "hh:mm A") : "--:--"
 
     function reload(): void {
+        console.log("Weather: Reloading data...");
         // Simple autodetection via ipinfo for now
         Requests.get("https://ipinfo.io/json", function(text) {
             try {
                 var response = JSON.parse(text);
+                console.log("Weather: ipinfo.io response:", JSON.stringify(response, null, 2));
                 if (response.loc) {
                     loc = response.loc;
                     city = response.city ?? "";
                     fetchWeatherData();
+                } else {
+                    console.error("Weather: ipinfo.io did not return location data.");
                 }
             } catch (e) {
-                console.error("Weather reload error: " + e);
+                console.error("Weather reload error (ipinfo.io): " + e + "\\nResponse text: " + text);
             }
+        }, function(errorText) {
+            console.error("Weather: ipinfo.io request failed: " + errorText);
         });
     }
 
     function fetchWeatherData(): void {
-        if (!loc) return;
+        if (!loc) {
+            console.warn("Weather: No location (loc) available to fetch weather data.");
+            return;
+        }
         var coords = loc.split(",");
         var url = "https://api.open-meteo.com/v1/forecast?latitude=" + coords[0] + "&longitude=" + coords[1] + "&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=auto";
+        console.log("Weather: Fetching weather data from:", url);
 
         Requests.get(url, function(text) {
             try {
                 var json = JSON.parse(text);
-                if (!json.current || !json.daily) return;
+                console.log("Weather: open-meteo.com response:", JSON.stringify(json, null, 2));
+                if (!json.current || !json.daily) {
+                    console.error("Weather: open-meteo.com did not return current or daily data.");
+                    return;
+                }
 
                 cc = {
                     weatherCode: json.current.weather_code,
@@ -71,20 +85,31 @@ Singleton {
                 }
                 forecast = forecastList;
             } catch (e) {
-                console.error("Fetch weather data error: " + e);
+                console.error("Fetch weather data error (open-meteo.com): " + e + "\\nResponse text: " + text);
             }
+        }, function(errorText) {
+            console.error("Weather: open-meteo.com request failed: " + errorText);
         });
     }
 
     function getWeatherCondition(code) {
         var conditions = {
-            "0": "Clear", "1": "Mainly Clear", "2": "Partly Cloudy", "3": "Overcast",
-            "45": "Fog", "48": "Depositing Rime Fog", "51": "Light Drizzle",
-            "53": "Moderate Drizzle", "55": "Dense Drizzle", "61": "Slight Rain",
-            "63": "Moderate Rain", "65": "Heavy Rain", "71": "Slight Snow",
-            "73": "Moderate Snow", "75": "Heavy Snow", "95": "Thunderstorm"
+            "0": "Clear sky", "1": "Mainly clear", "2": "Partly cloudy", "3": "Overcast",
+            "45": "Fog", "48": "Depositing rime fog", "51": "Light drizzle",
+            "53": "Moderate drizzle", "55": "Dense drizzle", "56": "Light freezing drizzle",
+            "57": "Dense freezing drizzle", "61": "Slight rain", "63": "Moderate rain",
+            "65": "Heavy rain", "66": "Light freezing rain", "67": "Heavy freezing rain",
+            "71": "Slight snow fall", "73": "Moderate snow fall", "75": "Heavy snow fall",
+            "77": "Snow grains", "80": "Slight rain showers", "81": "Moderate rain showers",
+            "82": "Violent rain showers", "85": "Slight snow showers", "86": "Heavy snow showers",
+            "95": "Thunderstorm", "96": "Thunderstorm with slight hail", "99": "Thunderstorm with heavy hail"
         };
-        return conditions[String(code)] || "Unknown";
+        var condition = conditions[String(code)];
+        if (condition === undefined) {
+            console.warn("Weather: Unknown weather code encountered: " + code);
+            return "Unknown";
+        }
+        return condition;
     }
 
     Component.onCompleted: reload()

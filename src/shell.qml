@@ -3,9 +3,9 @@
 //@ pragma Env QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000
 
 import QtQuick
-import "src/modules"
-import "src/services"
-import "src/config"
+import "modules"
+import "services"
+import "config" // Changed from "src/config"
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
@@ -17,15 +17,21 @@ ShellRoot {
     GlobalShortcut {
         appid: "hyprui"
         name: "cycle_theme"
-        onPressed: HyprUITheme.cycle()
+        onPressed: {
+            console.log("GlobalShortcut: cycle_theme pressed");
+            HyprUITheme.cycle();
+        }
     }
 
     // HYPRUI LAUNCHER
-    // bind = SUPER, SPACE, global, hyprui:toggle_launcher
+    // bind = SUPER, M, global, hyprui:toggle_launcher
     GlobalShortcut {
         appid: "hyprui"
-        name: "toggle_launcher"
-        onPressed: UI.toggleLauncher()
+        name: "toggle_launcher" // Name matches hyprland.conf bind entry
+        onPressed: {
+            console.log("GlobalShortcut: toggle_launcher pressed");
+            UI.toggleLauncher();
+        }
     }
 
     // HYPRUI DASHBOARD
@@ -33,7 +39,10 @@ ShellRoot {
     GlobalShortcut {
         appid: "hyprui"
         name: "toggle_dashboard"
-        onPressed: UI.toggleDashboard()
+        onPressed: {
+            console.log("GlobalShortcut: toggle_dashboard pressed");
+            UI.toggleDashboard();
+        }
     }
 
     Variants {
@@ -59,6 +68,7 @@ ShellRoot {
                 }
 
                 TopBar {
+                    id: topBarInstance
                     screen: modelData
                 }
                 

@@ -9,34 +9,34 @@ Singleton {
     id: root
 
     readonly property var weatherIcons: ({
-            "0": "clear_day",
-            "1": "clear_day",
-            "2": "partly_cloudy_day",
-            "3": "cloud",
-            "45": "foggy",
-            "48": "foggy",
-            "51": "rainy",
-            "53": "rainy",
-            "55": "rainy",
-            "56": "rainy",
-            "57": "rainy",
-            "61": "rainy",
-            "63": "rainy",
-            "65": "rainy",
-            "66": "rainy",
-            "67": "rainy",
-            "71": "cloudy_snowing",
-            "73": "cloudy_snowing",
-            "75": "snowing_heavy",
-            "77": "cloudy_snowing",
-            "80": "rainy",
-            "81": "rainy",
-            "82": "rainy",
-            "85": "cloudy_snowing",
-            "86": "snowing_heavy",
-            "95": "thunderstorm",
-            "96": "thunderstorm",
-            "99": "thunderstorm"
+            "0": "\uf185", // fa-sun (Clear sky)
+            "1": "\uf185", // fa-sun (Mainly clear)
+            "2": "\ue312", // wi-day-cloudy (Partly cloudy)
+            "3": "\ue335", // wi-cloudy (Overcast)
+            "45": "\ue320", // wi-fog (Fog)
+            "48": "\ue320", // wi-fog (Depositing rime fog)
+            "51": "\ue308", // wi-sprinkle (Light drizzle)
+            "53": "\ue308", // wi-sprinkle (Moderate drizzle)
+            "55": "\ue308", // wi-sprinkle (Dense drizzle)
+            "56": "\uf2dc", // fa-snowflake (Light freezing drizzle)
+            "57": "\uf2dc", // fa-snowflake (Dense freezing drizzle)
+            "61": "\ue306", // wi-day-rain (Slight rain)
+            "63": "\ue306", // wi-day-rain (Moderate rain)
+            "65": "\ue317", // wi-rain (Heavy rain)
+            "66": "\uf2dc", // fa-snowflake (Light freezing rain)
+            "67": "\uf2dc", // fa-snowflake (Heavy freezing rain)
+            "71": "\ue30a", // wi-snow (Slight snow fall)
+            "73": "\ue30a", // wi-snow (Moderate snow fall)
+            "75": "\uf2dc", // fa-snowflake (Heavy snow fall)
+            "77": "\ue30a", // wi-snow (Snow grains)
+            "80": "\ue316", // wi-showers (Slight rain showers)
+            "81": "\ue316", // wi-showers (Moderate rain showers)
+            "82": "\ue316", // wi-showers (Violent rain showers)
+            "85": "\ue311", // wi-snow-wind (Slight snow showers)
+            "86": "\ue311", // wi-snow-wind (Heavy snow showers)
+            "95": "\ue30f", // wi-thunderstorm (Thunderstorm)
+            "96": "\ue30f", // wi-thunderstorm (Thunderstorm with slight hail)
+            "99": "\ue30f"  // wi-thunderstorm (Thunderstorm with heavy hail)
         })
 
     readonly property var categoryIcons: ({
@@ -137,7 +137,7 @@ Singleton {
     function getWeatherIcon(code: string): string {
         if (weatherIcons.hasOwnProperty(code))
             return weatherIcons[code];
-        return "air";
+        return "\uf059"; // fa-question-circle (Nerd Font fallback)
     }
 
     function getNotifIcon(summary: string, urgency: int): string {

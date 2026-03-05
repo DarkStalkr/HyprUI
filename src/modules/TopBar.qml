@@ -9,6 +9,7 @@ import "../services"
 Scope {
     id: root
     required property ShellScreen screen
+    // Removed property var wifiListPopup: null // No longer needed after removing WifiListPopup
 
     PanelWindow {
         id: win
@@ -57,9 +58,9 @@ Scope {
                         Rectangle {
                             implicitWidth: 24
                             implicitHeight: 24
-                            radius: 12
+                            radius: 0 // Square boxes
                             color: modelData.id === Hypr.activeWsId ? HyprUITheme.primary : HyprUITheme.active.surface
-                            border.color: HyprUITheme.primary
+                            border.color: "transparent" // Eliminate border color
                             border.width: modelData.lastIpcObject.windows > 0 ? 1 : 0
                             
                             Text {
@@ -95,12 +96,13 @@ Scope {
                     
                     // Network
                     Text {
+                        id: wifiIcon
                         text: Network.wifiEnabled ? (Network.active ? "󰖩" : "󰖩") : "󰖪"
                         color: Network.active ? HyprUITheme.primary : HyprUITheme.active.text
                         font.pixelSize: 16
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: Network.toggleWifi()
+                            onClicked: Quickshell.execDetached(["kitty", "-e", "nmtui"]) // Launch nmtui on click
                         }
                     }
                     
@@ -112,9 +114,12 @@ Scope {
                         font.pixelSize: 16
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: {
-                                if (Bluetooth.defaultAdapter) {
-                                    Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter.enabled;
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton // Accept both left and right clicks
+                            onClicked: (mouse) => {
+                                if (mouse.button === Qt.LeftButton) {
+                                    Quickshell.execDetached(["/home/sohighman/.config/hypr/scripts/bluetooth-control.sh", "toggle"]); // Left-click toggles using script
+                                } else if (mouse.button === Qt.RightButton) {
+                                    Quickshell.execDetached(["blueberry"]); // Right-click opens blueberry GUI
                                 }
                             }
                         }
@@ -127,7 +132,18 @@ Scope {
                         font.pixelSize: 16
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: Audio.toggleMute()
+                            onClicked: Quickshell.execDetached(["pavucontrol"]) // Launch pavucontrol on click
+                        }
+                    }
+
+                    // Night Light
+                    Text {
+                        text: "󱩍" // Night light icon
+                        color: HyprUITheme.active.text
+                        font.pixelSize: 16
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: Quickshell.execDetached(["/home/sohighman/Documentos/Scripts/toggle_night_light.sh"]) // Toggle night light script
                         }
                     }
                     

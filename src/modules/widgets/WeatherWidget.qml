@@ -19,11 +19,13 @@ Rectangle {
         Text {
             text: Weather.icon
             font.pixelSize: 64
+            font.family: "Symbols Nerd Font Mono" // Set icon font to Nerd Font
             color: HyprUITheme.secondary
         }
 
         ColumnLayout {
             Layout.fillWidth: true
+            Layout.maximumWidth: 176 // Calculated available width for text content
             spacing: 5
 
             Text {
@@ -31,7 +33,7 @@ Rectangle {
                 color: HyprUITheme.active.text
                 font.pixelSize: 18
                 font.bold: true
-                elide: Text.ElideRight
+                // elide: Text.ElideRight // Removed to allow wrapMode
                 wrapMode: Text.WordWrap
             }
 
@@ -47,7 +49,7 @@ Rectangle {
                 color: HyprUITheme.active.text
                 opacity: 0.8
                 font.pixelSize: 14
-                elide: Text.ElideRight
+                // elide: Text.ElideRight // Removed to allow wrapMode
                 wrapMode: Text.WordWrap
             }
         }

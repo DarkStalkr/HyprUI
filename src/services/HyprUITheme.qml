@@ -10,8 +10,8 @@ Singleton {
     readonly property var themes: ({
         "macos": {
             name: "macOS (Segmented)",
-            background: "#181825", 
-            surface: "#45475a",
+            background: "#DD181825", // Increased opacity
+            surface: "#BB45475a", // Increased opacity
             text: "#cdd6f4",
             error: "#f38ba8",
             rounding: 20,
@@ -23,8 +23,8 @@ Singleton {
         },
         "mocha": {
             name: "Mocha",
-            background: "#1e1e2e",
-            surface: "#313244",
+            background: "#DD1e1e2e", // Increased opacity
+            surface: "#BB313244", // Increased opacity
             text: "#cdd6f4",
             error: "#f38ba8",
             rounding: 24,
@@ -35,8 +35,8 @@ Singleton {
         },
         "macchiato": {
             name: "Macchiato",
-            background: "#24273a",
-            surface: "#363a4f",
+            background: "#DD24273a", // Increased opacity
+            surface: "#BB363a4f", // Increased opacity
             text: "#cad3f5",
             error: "#ed8796",
             rounding: 24,
@@ -47,8 +47,8 @@ Singleton {
         },
         "frappe": {
             name: "Frappé",
-            background: "#303446",
-            surface: "#414559",
+            background: "#DD303446", // Increased opacity
+            surface: "#BB414559", // Increased opacity
             text: "#c6d0f5",
             error: "#e78284",
             rounding: 24,
@@ -59,8 +59,8 @@ Singleton {
         },
         "latte": {
             name: "Latte",
-            background: "#eff1f5",
-            surface: "#ccd0da",
+            background: "#DDeff1f5", // Increased opacity
+            surface: "#BBccd0da", // Increased opacity
             text: "#4c4f69",
             error: "#d20f39",
             rounding: 24,
@@ -71,8 +71,8 @@ Singleton {
         },
         "dracula": {
             name: "Dracula",
-            background: "#282a36",
-            surface: "#44475a",
+            background: "#DD282a36", // Increased opacity
+            surface: "#BB44475a", // Increased opacity
             text: "#f8f8f2",
             error: "#ff5555",
             rounding: 24,
@@ -83,8 +83,8 @@ Singleton {
         },
         "dracula-soft": {
             name: "Dracula Soft",
-            background: "#282a36",
-            surface: "#44475a",
+            background: "#DD282a36", // Increased opacity
+            surface: "#BB44475a", // Increased opacity
             text: "#f8f8f2",
             error: "#ff8787",
             rounding: 24,
@@ -95,8 +95,8 @@ Singleton {
         },
         "tokyonight-day": {
             name: "Tokyo Night Day",
-            background: "#e1e2e7",
-            surface: "#d0d5e3",
+            background: "#DDe1e2e7", // Increased opacity
+            surface: "#BBd0d5e3", // Increased opacity
             text: "#3760bf",
             error: "#c64343",
             rounding: 24,
@@ -107,8 +107,8 @@ Singleton {
         },
         "tokyonight-moon": {
             name: "Tokyo Night Moon",
-            background: "#222436",
-            surface: "#1e2030",
+            background: "#DD222436", // Increased opacity
+            surface: "#BB1e2030", // Increased opacity
             text: "#c8d3f5",
             error: "#c53b53",
             rounding: 24,
@@ -119,8 +119,8 @@ Singleton {
         },
         "tokyonight-night": {
             name: "Tokyo Night Night",
-            background: "#1a1b26",
-            surface: "#16161e",
+            background: "#DD1a1b26", // Increased opacity
+            surface: "#BB16161e", // Increased opacity
             text: "#c0caf5",
             error: "#db4b4b",
             rounding: 24,
@@ -131,8 +131,8 @@ Singleton {
         },
         "tokyonight-storm": {
             name: "Tokyo Night Storm",
-            background: "#24283b",
-            surface: "#1f2335",
+            background: "#DD24283b", // Increased opacity
+            surface: "#BB1f2335", // Increased opacity
             text: "#c0caf5",
             error: "#db4b4b",
             rounding: 24,
@@ -158,5 +158,6 @@ Singleton {
     function cycle() {
         let keys = Object.keys(themes);
         current = keys[(keys.indexOf(current) + 1) % keys.length];
+        console.log("HyprUITheme: Cycling theme to: " + current);
     }
 }
