@@ -4,6 +4,7 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Services.UPower
+import Quickshell.Services.Mpris
 import Quickshell.Bluetooth
 import "../services"
 import "../components"
@@ -14,8 +15,6 @@ Scope {
 
     readonly property bool isFocusedMonitor: Hypr.focusedMonitor?.name === screen.name
     readonly property bool visibleState: UI.controlCenterVisible && isFocusedMonitor
-
-    property int activeTab: 0
 
     onVisibleStateChanged: {
         if (!visibleState) {
@@ -86,6 +85,7 @@ Scope {
                     Text {
                         text: "Control Center"
                         color: HyprUITheme.active.text
+                        font.family: "MesloLGS NF"
                         font.pixelSize: 24
                         font.bold: true
                     }
@@ -95,6 +95,7 @@ Scope {
                     Text {
                         text: "󰅖"
                         color: HyprUITheme.active.text
+                        font.family: "MesloLGS NF"
                         font.pixelSize: 20
                         MouseArea {
                             anchors.fill: parent
@@ -103,256 +104,288 @@ Scope {
                     }
                 }
 
-                // Tabs
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 10
-                    
-                    Repeater {
-                        model: [
-                            { icon: "󰒓", label: "System" },
-                            { icon: "󰝚", label: "Media" },
-                            { icon: "󰂚", label: "Notifs" }
-                        ]
-                        
-                        Rectangle {
-                            Layout.fillWidth: true
-                            height: 40
-                            radius: 10
-                            color: root.activeTab === index ? HyprUITheme.primary : HyprUITheme.active.surface
-                            
-                            RowLayout {
-                                anchors.centerIn: parent
-                                spacing: 8
-                                Text { 
-                                    text: modelData.icon
-                                    color: root.activeTab === index ? HyprUITheme.active.background : HyprUITheme.active.text
-                                    font.pixelSize: 16
-                                }
-                                Text { 
-                                    text: modelData.label
-                                    color: root.activeTab === index ? HyprUITheme.active.background : HyprUITheme.active.text
-                                    font.bold: true
-                                    visible: container.width > 400
-                                }
-                            }
-                            
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: root.activeTab = index
-                            }
-                        }
-                    }
-                }
-                
-                StackLayout {
-                    currentIndex: root.activeTab
+                // Scrollable Content
+                Flickable {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
+                    contentHeight: contentColumn.implicitHeight
+                    clip: true
                     
-                    // Tab 0: System
-                    ColumnLayout {
-                        spacing: 20
-                        
-                        // System Quick Toggles
-                        GridLayout {
-                            columns: 2
-                            Layout.fillWidth: true
-                            columnSpacing: 10
-                            rowSpacing: 10
-                            
-                            Rectangle {
-                                Layout.fillWidth: true
-                                height: 60
-                                radius: 12
-                                color: Network.active ? HyprUITheme.primary : HyprUITheme.active.surface
-                                
-                                RowLayout {
-                                    anchors.centerIn: parent
-                                    spacing: 10
-                                    Text { text: "󰖩"; color: Network.active ? HyprUITheme.active.background : HyprUITheme.active.text; font.pixelSize: 20 }
-                                    Text { text: "Wi-Fi"; color: Network.active ? HyprUITheme.active.background : HyprUITheme.active.text; font.bold: true }
-                                }
-                                MouseArea { anchors.fill: parent; onClicked: Quickshell.execDetached(["kitty", "-e", "nmtui"]) }
-                            }
-                            
-                            Rectangle {
-                                Layout.fillWidth: true
-                                height: 60
-                                radius: 12
-                                color: Bluetooth.defaultAdapter?.enabled ? HyprUITheme.secondary : HyprUITheme.active.surface
-                                
-                                RowLayout {
-                                    anchors.centerIn: parent
-                                    spacing: 10
-                                    Text { text: "󰂯"; color: Bluetooth.defaultAdapter?.enabled ? HyprUITheme.active.background : HyprUITheme.active.text; font.pixelSize: 20 }
-                                    Text { text: "Bluetooth"; color: Bluetooth.defaultAdapter?.enabled ? HyprUITheme.active.background : HyprUITheme.active.text; font.bold: true }
-                                }
-                                MouseArea { 
-                                    anchors.fill: parent
-                                    onClicked: Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter.enabled
-                                    onPressAndHold: Quickshell.execDetached(["blueberry"])
-                                }
-                            }
-                        }
-
-                        // Volume Slider
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 10
-                            RowLayout {
-                                Text { text: "Volume"; color: HyprUITheme.active.text; font.bold: true }
-                                Item { Layout.fillWidth: true }
-                                Text { text: Math.round(Audio.volume * 100) + "%"; color: HyprUITheme.active.text; opacity: 0.8 }
-                            }
-                            Rectangle {
-                                id: volSlider
-                                Layout.fillWidth: true
-                                height: 12
-                                radius: 6
-                                color: HyprUITheme.active.surface
-                                
-                                Rectangle {
-                                    width: parent.width * Math.min(1.0, Audio.volume)
-                                    height: parent.height
-                                    radius: 6
-                                    color: HyprUITheme.primary
-                                }
-                                
-                                MouseArea {
-                                    anchors.fill: parent
-                                    onPressed: (mouse) => Audio.setVolume(mouse.x / width)
-                                    onPositionChanged: (mouse) => Audio.setVolume(Math.max(0, Math.min(1.5, mouse.x / width)))
-                                }
-                            }
-                        }
-
-                        // Brightness Slider
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 10
-                            RowLayout {
-                                Text { text: "Brightness"; color: HyprUITheme.active.text; font.bold: true }
-                                Item { Layout.fillWidth: true }
-                                Text { text: Math.round(Brightness.brightness * 100) + "%"; color: HyprUITheme.active.text; opacity: 0.8 }
-                            }
-                            Rectangle {
-                                Layout.fillWidth: true
-                                height: 12
-                                radius: 6
-                                color: HyprUITheme.active.surface
-                                
-                                Rectangle {
-                                    width: parent.width * Brightness.brightness
-                                    height: parent.height
-                                    radius: 6
-                                    color: HyprUITheme.secondary
-                                }
-                                
-                                MouseArea {
-                                    anchors.fill: parent
-                                    onPressed: (mouse) => Brightness.set(mouse.x / width)
-                                    onPositionChanged: (mouse) => Brightness.set(Math.max(0, Math.min(1, mouse.x / width)))
-                                }
-                            }
-                        }
-                        
-                        Item { Layout.fillHeight: true }
+                    ScrollBar.vertical: ScrollBar {
+                        policy: ScrollBar.AsNeeded
                     }
-                    
-                    // Tab 1: Media
+
                     ColumnLayout {
-                        spacing: 20
-                        
-                        Repeater {
-                            model: Mpris.players.values
-                            
-                            Rectangle {
+                        id: contentColumn
+                        width: parent.width
+                        spacing: 25
+
+                        // --- SECTION: SYSTEM ---
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 15
+
+                            // System Quick Toggles
+                            GridLayout {
+                                columns: 2
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 120
-                                radius: 15
-                                color: HyprUITheme.active.surface
-                                border.color: HyprUITheme.primary
-                                border.width: modelData.playbackStatus === MprisPlaybackStatus.Playing ? 1 : 0
+                                columnSpacing: 10
+                                rowSpacing: 10
                                 
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    height: 60
+                                    radius: 12
+                                    color: Network.active ? HyprUITheme.primary : HyprUITheme.active.surface
+                                    
+                                    RowLayout {
+                                        anchors.centerIn: parent
+                                        spacing: 10
+                                        Text { 
+                                            text: "󰖩"
+                                            color: Network.active ? HyprUITheme.active.background : HyprUITheme.active.text
+                                            font.family: "MesloLGS NF"
+                                            font.pixelSize: 20 
+                                        }
+                                        Text { 
+                                            text: "Wi-Fi"
+                                            color: Network.active ? HyprUITheme.active.background : HyprUITheme.active.text
+                                            font.family: "MesloLGS NF"
+                                            font.bold: true 
+                                        }
+                                    }
+                                    MouseArea { anchors.fill: parent; onClicked: Quickshell.execDetached(["kitty", "-e", "nmtui"]) }
+                                }
+                                
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    height: 60
+                                    radius: 12
+                                    color: (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled) ? HyprUITheme.secondary : HyprUITheme.active.surface
+                                    
+                                    RowLayout {
+                                        anchors.centerIn: parent
+                                        spacing: 10
+                                        Text { 
+                                            text: "󰂯"
+                                            color: (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled) ? HyprUITheme.active.background : HyprUITheme.active.text
+                                            font.family: "MesloLGS NF"
+                                            font.pixelSize: 20 
+                                        }
+                                        Text { 
+                                            text: "Bluetooth"
+                                            color: (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled) ? HyprUITheme.active.background : HyprUITheme.active.text
+                                            font.family: "MesloLGS NF"
+                                            font.bold: true 
+                                        }
+                                    }
+                                    MouseArea { 
+                                        anchors.fill: parent
+                                        onClicked: {
+                                            if (Bluetooth.defaultAdapter) {
+                                                Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter.enabled
+                                            } else {
+                                                Quickshell.execDetached(["blueberry"])
+                                            }
+                                        }
+                                        onPressAndHold: Quickshell.execDetached(["blueberry"])
+                                    }
+                                }
+                            }
+
+                            // Volume Slider
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 10
                                 RowLayout {
-                                    anchors.fill: parent
-                                    anchors.margins: 15
-                                    spacing: 15
+                                    Text { text: "Volume"; color: HyprUITheme.active.text; font.family: "MesloLGS NF"; font.bold: true }
+                                    Item { Layout.fillWidth: true }
+                                    Text { text: Math.round(Audio.volume * 100) + "%"; color: HyprUITheme.active.text; font.family: "MesloLGS NF"; opacity: 0.8 }
+                                }
+                                Rectangle {
+                                    id: volSlider
+                                    Layout.fillWidth: true
+                                    height: 12
+                                    radius: 6
+                                    color: HyprUITheme.active.surface
                                     
                                     Rectangle {
-                                        Layout.preferredWidth: 90
-                                        Layout.preferredHeight: 90
-                                        radius: 10
-                                        clip: true
-                                        color: HyprUITheme.active.background
-                                        
-                                        Image {
-                                            anchors.fill: parent
-                                            source: modelData.artUrl || ""
-                                            fillMode: Image.PreserveAspectCrop
-                                            opacity: status === Image.Ready ? 1 : 0.3
-                                        }
-                                        
-                                        Text {
-                                            anchors.centerIn: parent
-                                            visible: parent.children[0].status !== Image.Ready
-                                            text: "󰝚"
-                                            font.pixelSize: 32
-                                            color: HyprUITheme.active.text
-                                        }
+                                        width: parent.width * Math.min(1.0, Audio.volume)
+                                        height: parent.height
+                                        radius: 6
+                                        color: HyprUITheme.primary
+                                        Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
                                     }
                                     
-                                    ColumnLayout {
-                                        Layout.fillWidth: true
-                                        spacing: 2
-                                        Text {
-                                            text: modelData.trackTitle || "No Title"
-                                            color: HyprUITheme.active.text
-                                            font.bold: true
-                                            font.pixelSize: 16
-                                            elide: Text.ElideRight
-                                            Layout.fillWidth: true
-                                        }
-                                        Text {
-                                            text: modelData.trackArtist || "Unknown Artist"
-                                            color: HyprUITheme.active.text
-                                            opacity: 0.7
-                                            font.pixelSize: 14
-                                            elide: Text.ElideRight
-                                            Layout.fillWidth: true
-                                        }
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onPressed: (mouse) => Audio.setVolume(mouse.x / width)
+                                        onPositionChanged: (mouse) => Audio.setVolume(Math.max(0, Math.min(1.5, mouse.x / width)))
+                                    }
+                                }
+                            }
+
+                            // Brightness Slider
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 10
+                                RowLayout {
+                                    Text { text: "Brightness"; color: HyprUITheme.active.text; font.family: "MesloLGS NF"; font.bold: true }
+                                    Item { Layout.fillWidth: true }
+                                    Text { text: Math.round(Brightness.brightness * 100) + "%"; color: HyprUITheme.active.text; font.family: "MesloLGS NF"; opacity: 0.8 }
+                                }
+                                Rectangle {
+                                    id: brightSlider
+                                    Layout.fillWidth: true
+                                    height: 12
+                                    radius: 6
+                                    color: HyprUITheme.active.surface
+                                    
+                                    Rectangle {
+                                        width: parent.width * Brightness.brightness
+                                        height: parent.height
+                                        radius: 6
+                                        color: HyprUITheme.secondary
+                                        Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
+                                    }
+                                    
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onPressed: (mouse) => Brightness.set(mouse.x / width)
+                                        onPositionChanged: (mouse) => Brightness.set(Math.max(0, Math.min(1, mouse.x / width)))
+                                    }
+                                }
+                            }
+                        }
+
+                        // --- SECTION: MEDIA ---
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 15
+                            
+                            Text { 
+                                text: "Media"
+                                color: HyprUITheme.active.text
+                                font.family: "MesloLGS NF"
+                                font.pixelSize: 18
+                                font.bold: true 
+                            }
+
+                            Repeater {
+                                model: Mpris.players.values
+                                
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 120
+                                    radius: 15
+                                    color: HyprUITheme.active.surface
+                                    border.color: HyprUITheme.primary
+                                    border.width: modelData.playbackStatus === MprisPlaybackStatus.Playing ? 1 : 0
+                                    
+                                    RowLayout {
+                                        anchors.fill: parent
+                                        anchors.margins: 15
+                                        spacing: 15
                                         
-                                        Item { Layout.preferredHeight: 10 }
-                                        
-                                        RowLayout {
-                                            spacing: 15
-                                            Text { text: "󰒮"; color: HyprUITheme.active.text; font.pixelSize: 20; MouseArea { anchors.fill: parent; onClicked: modelData.previous() } }
-                                            Text { 
-                                                text: modelData.playbackStatus === MprisPlaybackStatus.Playing ? "󰏤" : "󰐊"
-                                                color: HyprUITheme.primary
-                                                font.pixelSize: 28
-                                                MouseArea { anchors.fill: parent; onClicked: modelData.playPause() }
+                                        Rectangle {
+                                            Layout.preferredWidth: 90
+                                            Layout.preferredHeight: 90
+                                            radius: 10
+                                            clip: true
+                                            color: HyprUITheme.active.background
+                                            
+                                            Image {
+                                                anchors.fill: parent
+                                                source: modelData.artUrl || ""
+                                                fillMode: Image.PreserveAspectCrop
+                                                opacity: status === Image.Ready ? 1 : 0.3
                                             }
-                                            Text { text: "󰒭"; color: HyprUITheme.active.text; font.pixelSize: 20; MouseArea { anchors.fill: parent; onClicked: modelData.next() } }
+                                            
+                                            Text {
+                                                anchors.centerIn: parent
+                                                visible: parent.children[0].status !== Image.Ready
+                                                text: "󰝚"
+                                                font.family: "MesloLGS NF"
+                                                font.pixelSize: 32
+                                                color: HyprUITheme.active.text
+                                            }
+                                        }
+                                        
+                                        ColumnLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 2
+                                            Text {
+                                                text: modelData.trackTitle || "No Title"
+                                                color: HyprUITheme.active.text
+                                                font.family: "MesloLGS NF"
+                                                font.bold: true
+                                                font.pixelSize: 16
+                                                elide: Text.ElideRight
+                                                Layout.fillWidth: true
+                                            }
+                                            Text {
+                                                text: modelData.trackArtist || "Unknown Artist"
+                                                color: HyprUITheme.active.text
+                                                font.family: "MesloLGS NF"
+                                                opacity: 0.7
+                                                font.pixelSize: 14
+                                                elide: Text.ElideRight
+                                                Layout.fillWidth: true
+                                            }
+                                            
+                                            Item { Layout.preferredHeight: 10 }
+                                            
+                                            RowLayout {
+                                                spacing: 15
+                                                Text { 
+                                                    text: "󰒮"
+                                                    color: modelData.canGoPrevious ? HyprUITheme.active.text : "gray"
+                                                    font.family: "MesloLGS NF"
+                                                    font.pixelSize: 20
+                                                    MouseArea { anchors.fill: parent; enabled: modelData.canGoPrevious; onClicked: modelData.previous() } 
+                                                }
+                                                Text { 
+                                                    text: modelData.playbackStatus === MprisPlaybackStatus.Playing ? "󰏤" : "󰐊"
+                                                    color: HyprUITheme.primary
+                                                    font.family: "MesloLGS NF"
+                                                    font.pixelSize: 28
+                                                    MouseArea { anchors.fill: parent; onClicked: modelData.playPause() }
+                                                }
+                                                Text { 
+                                                    text: "󰒭"
+                                                    color: modelData.canGoNext ? HyprUITheme.active.text : "gray"
+                                                    font.family: "MesloLGS NF"
+                                                    font.pixelSize: 20
+                                                    MouseArea { anchors.fill: parent; enabled: modelData.canGoNext; onClicked: modelData.next() } 
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                        
-                        Item { Layout.fillHeight: true }
-                    }
-                    
-                    // Tab 2: Notifications
-                    ColumnLayout {
-                        Text {
-                            text: "Notifications History"
-                            color: HyprUITheme.active.text
-                            opacity: 0.5
-                            Layout.alignment: Qt.AlignCenter
+
+                        // --- SECTION: NOTIFICATIONS ---
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 15
+                            
+                            Text { 
+                                text: "Notifications"
+                                color: HyprUITheme.active.text
+                                font.family: "MesloLGS NF"
+                                font.pixelSize: 18
+                                font.bold: true 
+                            }
+
+                            Text {
+                                text: "No recent notifications"
+                                color: HyprUITheme.active.text
+                                font.family: "MesloLGS NF"
+                                opacity: 0.5
+                                Layout.alignment: Qt.AlignCenter
+                            }
                         }
-                        Item { Layout.fillHeight: true }
                     }
                 }
                 
@@ -377,6 +410,7 @@ Scope {
                             return stateStr + perc + "%" + timeStr;
                         }
                         color: UPower.displayDevice.state === UPowerDeviceState.Charging ? HyprUITheme.primary : HyprUITheme.active.text
+                        font.family: "MesloLGS NF"
                         opacity: 0.8
                     }
                     
@@ -385,6 +419,7 @@ Scope {
                     Text {
                         text: "󰅐 " + Time.timeStr
                         color: HyprUITheme.active.text
+                        font.family: "MesloLGS NF"
                         opacity: 0.8
                     }
                 }
