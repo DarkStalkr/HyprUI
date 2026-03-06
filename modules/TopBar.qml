@@ -13,8 +13,11 @@ Scope {
     id: root
     required property ShellScreen screen
 
-    // SystemTray is a singleton that starts tracking items when referenced
-    // Use SystemTray.items.count to "poke" the service if needed
+    // Detect if there's a fullscreen window on this monitor
+    readonly property bool isFullscreen: {
+        const monitor = Hypr.monitors.values.find(m => m.name === root.screen.name);
+        return monitor && monitor.activeWorkspace ? monitor.activeWorkspace.hasFullscreen : false;
+    }
 
     function formatSeconds(s) {
         if (s <= 0) return "Calculating..."
@@ -27,7 +30,8 @@ Scope {
     PanelWindow {
         id: win
         screen: root.screen
-        visible: true
+        // Hide automatically in fullscreen
+        visible: !root.isFullscreen
         
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "hyprui-topbar"
@@ -137,7 +141,6 @@ Scope {
                                         if (mouse.button === Qt.LeftButton) {
                                             modelData.activate();
                                         } else {
-                                            // Map click position to window coordinates for the display() function
                                             var windowPos = trayItemRoot.mapToItem(win.contentItem, mouse.x, mouse.y);
                                             modelData.display(win, windowPos.x, windowPos.y);
                                         }

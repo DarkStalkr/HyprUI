@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import "../services"
 import "../components"
 
@@ -9,12 +10,18 @@ Scope {
     id: root
     required property ShellScreen screen
 
+    // Detect if there's a fullscreen window on this monitor
+    readonly property bool isFullscreen: {
+        const monitor = Hypr.monitors.values.find(m => m.name === root.screen.name);
+        return monitor && monitor.activeWorkspace ? monitor.activeWorkspace.hasFullscreen : false;
+    }
+
     PanelWindow {
         id: win
         screen: root.screen
-        visible: true
+        // Hide automatically in fullscreen
+        visible: !root.isFullscreen
         
-        // Changed to Overlay to ensure tooltips are on top of everything
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "hyprui-sidebar"
         WlrLayershell.exclusiveZone: 60
@@ -25,7 +32,6 @@ Scope {
             left: true
         }
         
-        // Much wider to allow tooltips to show to the right
         implicitWidth: 400
         color: "transparent"
         
