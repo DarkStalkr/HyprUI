@@ -280,7 +280,7 @@ Scope {
                                     radius: 15
                                     color: HyprUITheme.active.surface
                                     border.color: HyprUITheme.primary
-                                    border.width: modelData.playbackStatus === MprisPlaybackStatus.Playing ? 1 : 0
+                                    border.width: modelData.playbackState === MprisPlaybackState.Playing ? 1 : 0
                                     
                                     RowLayout {
                                         anchors.fill: parent
@@ -296,7 +296,7 @@ Scope {
                                             
                                             Image {
                                                 anchors.fill: parent
-                                                source: modelData.artUrl || ""
+                                                source: modelData.trackArtUrl || ""
                                                 fillMode: Image.PreserveAspectCrop
                                                 opacity: status === Image.Ready ? 1 : 0.3
                                             }
@@ -324,7 +324,10 @@ Scope {
                                                 Layout.fillWidth: true
                                             }
                                             Text {
-                                                text: modelData.trackArtist || "Unknown Artist"
+                                                text: {
+                                                    if (Array.isArray(modelData.trackArtists)) return modelData.trackArtists.join(", ");
+                                                    return modelData.trackArtist || "Unknown Artist";
+                                                }
                                                 color: HyprUITheme.active.text
                                                 font.family: "MesloLGS NF"
                                                 opacity: 0.7
@@ -345,11 +348,11 @@ Scope {
                                                     MouseArea { anchors.fill: parent; enabled: modelData.canGoPrevious; onClicked: modelData.previous() } 
                                                 }
                                                 Text { 
-                                                    text: modelData.playbackStatus === MprisPlaybackStatus.Playing ? "󰏤" : "󰐊"
+                                                    text: (modelData.playbackState === MprisPlaybackState.Playing) ? "󰏤" : "󰐊"
                                                     color: HyprUITheme.primary
                                                     font.family: "MesloLGS NF"
                                                     font.pixelSize: 28
-                                                    MouseArea { anchors.fill: parent; onClicked: modelData.playPause() }
+                                                    MouseArea { anchors.fill: parent; onClicked: modelData.togglePlaying() }
                                                 }
                                                 Text { 
                                                     text: "󰒭"

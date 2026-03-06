@@ -8,7 +8,6 @@ Scope {
     id: root
     required property ShellScreen screen
 
-    readonly property bool isSegmented: HyprUITheme.active.segmented ?? false
     readonly property bool visibleState: hideTimer.running
 
     property string mode: "volume" // "volume" or "brightness"
@@ -51,88 +50,69 @@ Scope {
         WlrLayershell.exclusiveZone: -1
         
         anchors {
+            top: true
             bottom: true
             left: true
             right: true
         }
         
-        implicitHeight: 120
         color: "transparent"
 
         Rectangle {
             id: container
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: 40
+            anchors.bottomMargin: 80 // Matching your GTK-layer-shell margin
             
-            width: 320
-            height: 70
+            width: 380 // Larger
+            height: 100 // Increased from 90 to fit larger icon
             
-            radius: HyprUITheme.active.rounding
+            radius: 24 // 24px as in your C snippet
             color: HyprUITheme.active.background
-            border.color: mode === "volume" ? HyprUITheme.primary : HyprUITheme.secondary
-            border.width: isSegmented ? 0 : 1.5
+            border.color: mode === "volume" ? (Audio.muted ? HyprUITheme.active.error : HyprUITheme.primary) : HyprUITheme.secondary
+            border.width: 2
             
             opacity: visibleState ? 1.0 : 0.0
-            scale: visibleState ? 1.0 : 0.85
+            scale: visibleState ? 1.0 : 0.9
 
             Behavior on opacity { NumberAnimation { duration: 150 } }
             Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutBack } }
-            Behavior on border.color { ColorAnimation { duration: 200 } }
 
             RowLayout {
                 anchors.fill: parent
-                anchors.margins: 15
-                spacing: 12
+                anchors.margins: 20
+                spacing: 15
 
                 Text {
                     text: mode === "volume" ? (Audio.muted ? "󰝟" : "󰕾") : "󰃠"
-                    font.pixelSize: 22
+                    font.family: "MesloLGS NF"
+                    font.pixelSize: 36 // Increased from 28
                     color: mode === "volume" ? (Audio.muted ? HyprUITheme.active.error : HyprUITheme.primary) : HyprUITheme.secondary
                 }
 
-                // Bar Layout
-                Row {
+                // Thicker Progress Bar (32px)
+                Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: isSegmented ? 24 : 8
-                    spacing: isSegmented ? 4 : 0
-                    
-                    // Standard Bar
+                    Layout.preferredHeight: 32 // 32px height as requested
+                    radius: 16
+                    color: HyprUITheme.active.surface // trough color
+
                     Rectangle {
-                        visible: !isSegmented
-                        width: parent.width
+                        width: parent.width * Math.min(root.value, 1.0)
                         height: parent.height
-                        radius: 4
-                        color: HyprUITheme.active.surface
-
-                        Rectangle {
-                            width: parent.width * Math.min(root.value, 1.0)
-                            height: parent.height
-                            radius: 4
-                            color: mode === "volume" ? HyprUITheme.primary : HyprUITheme.secondary
-                            Behavior on width { NumberAnimation { duration: 100 } }
-                        }
-                    }
-
-                    // Segmented macOS Bar
-                    Repeater {
-                        model: isSegmented ? 16 : 0
-                        Rectangle {
-                            width: (parent.width - (15 * 4)) / 16
-                            height: parent.height
-                            radius: 2
-                            color: (index / 16) < root.value ? (mode === "volume" ? HyprUITheme.primary : HyprUITheme.secondary) : "rgba(69, 71, 90, 0.3)"
+                        radius: 16
+                        color: mode === "volume" ? (Audio.muted ? HyprUITheme.active.error : HyprUITheme.primary) : HyprUITheme.secondary
+                        
+                        Behavior on width { 
+                            NumberAnimation { 
+                                duration: 100
+                                easing.type: Easing.OutCubic
+                            } 
                         }
                     }
                 }
-
-                Text {
-                    text: Math.round(root.value * 100) + "%"
-                    font.pixelSize: 14
-                    font.bold: true
-                    color: HyprUITheme.active.text
-                    width: 35
-                }
+                
+                // Percentage label removed as requested
             }
         }
     }
