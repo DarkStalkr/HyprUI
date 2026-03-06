@@ -6,3 +6,4 @@ MediaPanel 1.0 MediaPanel.qml
 SideBar 1.0 SideBar.qml
 TopBar 1.0 TopBar.qml
 WifiListPopup 1.0 WifiListPopup.qml
+ControlCenter 1.0 ControlCenter.qml

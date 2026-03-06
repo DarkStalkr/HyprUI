@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 import Quickshell.Bluetooth // Import for Bluetooth service
+import Quickshell.Services.UPower // For UPower
 import "../services"
 
 Scope {
@@ -133,6 +134,40 @@ Scope {
                         MouseArea {
                             anchors.fill: parent
                             onClicked: Quickshell.execDetached(["pavucontrol"]) // Launch pavucontrol on click
+                        }
+                    }
+
+                    // Battery
+                    Text {
+                        id: batteryIcon
+                        visible: UPower.displayDevice.isLaptopBattery
+                        
+                        readonly property bool isCharging: UPower.displayDevice.state === UPowerDeviceState.Charging || UPower.displayDevice.state === UPowerDeviceState.FullyCharged
+                        readonly property real percentage: UPower.displayDevice.percentage * 100
+                        
+                        text: {
+                            if (isCharging) return " " + Math.round(percentage) + "%"
+                            
+                            const icons = ["", "", "", "", ""]
+                            const index = Math.min(Math.floor(percentage / 20), 4)
+                            return icons[index] + " " + Math.round(percentage) + "%"
+                        }
+                        
+                        color: {
+                            if (isCharging) return HyprUITheme.active.green
+                            if (percentage <= 15) return HyprUITheme.active.error // Critical
+                            if (percentage <= 30) return HyprUITheme.secondary // Warning (using secondary accent)
+                            return HyprUITheme.active.green // Normal (green as requested)
+                        }
+                        
+                        font.pixelSize: 14
+                        font.bold: true
+                        
+                        function formatSeconds(s) {
+                            if (s <= 0) return "Calculating..."
+                            const h = Math.floor(s / 3600)
+                            const m = Math.floor((s % 3600) / 60)
+                            return h + "h " + m + "m"
                         }
                     }
 

@@ -1,5 +1,6 @@
 module config
 singleton Config 1.0 Config.qml
+singleton Appearance 1.0 Appearance.qml
 AppearanceConfig 1.0 AppearanceConfig.qml
 GeneralConfig 1.0 GeneralConfig.qml
 BackgroundConfig 1.0 BackgroundConfig.qml

@@ -10,10 +10,11 @@ Singleton {
     readonly property var themes: ({
         "macos": {
             name: "macOS (Segmented)",
-            background: "#DD181825", // Increased opacity
-            surface: "#BB45475a", // Increased opacity
+            background: "#DD181825",
+            surface: "#BB45475a",
             text: "#cdd6f4",
             error: "#f38ba8",
+            green: "#a6e3a1",
             rounding: 20,
             segmented: true,
             accents: {
@@ -23,10 +24,11 @@ Singleton {
         },
         "mocha": {
             name: "Mocha",
-            background: "#DD1e1e2e", // Increased opacity
-            surface: "#BB313244", // Increased opacity
+            background: "#DD1e1e2e",
+            surface: "#BB313244",
             text: "#cdd6f4",
             error: "#f38ba8",
+            green: "#a6e3a1",
             rounding: 24,
             accents: {
                 volume: "#cba6f7",
@@ -35,10 +37,11 @@ Singleton {
         },
         "macchiato": {
             name: "Macchiato",
-            background: "#DD24273a", // Increased opacity
-            surface: "#BB363a4f", // Increased opacity
+            background: "#DD24273a",
+            surface: "#BB363a4f",
             text: "#cad3f5",
             error: "#ed8796",
+            green: "#a6e3a1",
             rounding: 24,
             accents: {
                 volume: "#c6a0f6",
@@ -47,10 +50,11 @@ Singleton {
         },
         "frappe": {
             name: "Frappé",
-            background: "#DD303446", // Increased opacity
-            surface: "#BB414559", // Increased opacity
+            background: "#DD303446",
+            surface: "#BB414559",
             text: "#c6d0f5",
             error: "#e78284",
+            green: "#a6e3a1",
             rounding: 24,
             accents: {
                 volume: "#ca9ee6",
@@ -59,10 +63,11 @@ Singleton {
         },
         "latte": {
             name: "Latte",
-            background: "#DDeff1f5", // Increased opacity
-            surface: "#BBccd0da", // Increased opacity
+            background: "#DDeff1f5",
+            surface: "#BBccd0da",
             text: "#4c4f69",
             error: "#d20f39",
+            green: "#40a02b",
             rounding: 24,
             accents: {
                 volume: "#8839ef",
@@ -71,10 +76,11 @@ Singleton {
         },
         "dracula": {
             name: "Dracula",
-            background: "#DD282a36", // Increased opacity
-            surface: "#BB44475a", // Increased opacity
+            background: "#DD282a36",
+            surface: "#BB44475a",
             text: "#f8f8f2",
             error: "#ff5555",
+            green: "#50fa7b",
             rounding: 24,
             accents: {
                 volume: "#bd93f9",
@@ -83,10 +89,11 @@ Singleton {
         },
         "dracula-soft": {
             name: "Dracula Soft",
-            background: "#DD282a36", // Increased opacity
-            surface: "#BB44475a", // Increased opacity
+            background: "#DD282a36",
+            surface: "#BB44475a",
             text: "#f8f8f2",
             error: "#ff8787",
+            green: "#50fa7b",
             rounding: 24,
             accents: {
                 volume: "#dac4f9",
@@ -95,10 +102,11 @@ Singleton {
         },
         "tokyonight-day": {
             name: "Tokyo Night Day",
-            background: "#DDe1e2e7", // Increased opacity
-            surface: "#BBd0d5e3", // Increased opacity
+            background: "#DDe1e2e7",
+            surface: "#BBd0d5e3",
             text: "#3760bf",
             error: "#c64343",
+            green: "#485e30",
             rounding: 24,
             accents: {
                 volume: "#2e7de9",
@@ -107,10 +115,11 @@ Singleton {
         },
         "tokyonight-moon": {
             name: "Tokyo Night Moon",
-            background: "#DD222436", // Increased opacity
-            surface: "#BB1e2030", // Increased opacity
+            background: "#DD222436",
+            surface: "#BB1e2030",
             text: "#c8d3f5",
             error: "#c53b53",
+            green: "#c3e88d",
             rounding: 24,
             accents: {
                 volume: "#82aaff",
@@ -119,10 +128,11 @@ Singleton {
         },
         "tokyonight-night": {
             name: "Tokyo Night Night",
-            background: "#DD1a1b26", // Increased opacity
-            surface: "#BB16161e", // Increased opacity
+            background: "#DD1a1b26",
+            surface: "#BB16161e",
             text: "#c0caf5",
             error: "#db4b4b",
+            green: "#9ece6a",
             rounding: 24,
             accents: {
                 volume: "#7aa2f7",
@@ -131,10 +141,11 @@ Singleton {
         },
         "tokyonight-storm": {
             name: "Tokyo Night Storm",
-            background: "#DD24283b", // Increased opacity
-            surface: "#BB1f2335", // Increased opacity
+            background: "#DD24283b",
+            surface: "#BB1f2335",
             text: "#c0caf5",
             error: "#db4b4b",
+            green: "#9ece6a",
             rounding: 24,
             accents: {
                 volume: "#7aa2f7",

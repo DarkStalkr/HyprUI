@@ -45,6 +45,17 @@ ShellRoot {
         }
     }
 
+    // HYPRUI CONTROL CENTER
+    // bind = SUPER, C, global, hyprui:toggle_control_center
+    GlobalShortcut {
+        appid: "hyprui"
+        name: "toggle_control_center"
+        onPressed: {
+            console.log("GlobalShortcut: toggle_control_center pressed");
+            UI.toggleControlCenter();
+        }
+    }
+
     Variants {
         model: Quickshell.screens
         delegate: Component {
@@ -73,6 +84,10 @@ ShellRoot {
                 }
                 
                 SideBar {
+                    screen: modelData
+                }
+
+                ControlCenter {
                     screen: modelData
                 }
             }

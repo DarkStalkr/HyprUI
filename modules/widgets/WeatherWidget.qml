@@ -1,19 +1,15 @@
 import QtQuick
 import QtQuick.Layouts
 import "../../services"
+import "../../components"
 
-Rectangle {
+StyledWidget {
     id: root
-    implicitWidth: 300
     implicitHeight: 150
-    radius: HyprUITheme.active.rounding
-    color: HyprUITheme.active.surface
-    border.color: HyprUITheme.primary
-    border.width: 1
+    title: "" // No title for this widget
 
-    RowLayout {
+    content: RowLayout {
         anchors.fill: parent
-        anchors.margins: 20
         spacing: 20
 
         Text {

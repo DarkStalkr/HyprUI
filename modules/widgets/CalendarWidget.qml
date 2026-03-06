@@ -2,28 +2,15 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import "../../services"
+import "../../components"
 
-Rectangle {
+StyledWidget {
     id: root
-    implicitWidth: 300
-    implicitHeight: 350
-    radius: HyprUITheme.active.rounding
-    color: HyprUITheme.active.surface
-    border.color: HyprUITheme.primary
-    border.width: 1
+    title: Qt.formatDate(new Date(), "MMMM yyyy")
 
-    ColumnLayout {
+    content: ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 20
         spacing: 15
-
-        Text {
-            Layout.alignment: Qt.AlignHCenter
-            text: Qt.formatDate(new Date(), "MMMM yyyy")
-            color: HyprUITheme.active.text
-            font.pixelSize: 20
-            font.bold: true
-        }
 
         DayOfWeekRow {
             Layout.fillWidth: true

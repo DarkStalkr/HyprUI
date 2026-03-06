@@ -1,0 +1,32 @@
+pragma Singleton
+import QtQuick
+
+QtObject {
+    property bool launcherVisible: false
+    property bool dashboardVisible: false
+    property bool controlCenterVisible: false
+    
+    function toggleLauncher() {
+        launcherVisible = !launcherVisible;
+        if (launcherVisible) {
+            dashboardVisible = false;
+            controlCenterVisible = false;
+        }
+    }
+
+    function toggleDashboard() {
+        dashboardVisible = !dashboardVisible;
+        if (dashboardVisible) {
+            launcherVisible = false;
+            controlCenterVisible = false;
+        }
+    }
+
+    function toggleControlCenter() {
+        controlCenterVisible = !controlCenterVisible;
+        if (controlCenterVisible) {
+            launcherVisible = false;
+            dashboardVisible = false;
+        }
+    }
+}
