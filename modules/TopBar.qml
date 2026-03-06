@@ -3,21 +3,33 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import Quickshell.Bluetooth // Import for Bluetooth service
-import Quickshell.Services.UPower // For UPower
+import Quickshell.Bluetooth
+import Quickshell.Services.UPower
+import Quickshell.Services.SystemTray
 import "../services"
+import "../components"
 
 Scope {
     id: root
     required property ShellScreen screen
-    // Removed property var wifiListPopup: null // No longer needed after removing WifiListPopup
+
+    // SystemTray is a singleton that starts tracking items when referenced
+    // Use SystemTray.items.count to "poke" the service if needed
+
+    function formatSeconds(s) {
+        if (s <= 0) return "Calculating..."
+        const h = Math.floor(s / 3600)
+        const m = Math.floor((s % 3600) / 60)
+        if (h > 0) return h + "h " + m + "m"
+        return m + "m"
+    }
 
     PanelWindow {
         id: win
         screen: root.screen
         visible: true
         
-        WlrLayershell.layer: WlrLayer.Bottom
+        WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "hyprui-topbar"
         WlrLayershell.exclusiveZone: 45
         
@@ -27,15 +39,22 @@ Scope {
             right: true
         }
         
-        implicitHeight: 45
+        implicitHeight: 300
         color: "transparent"
+        
+        mask: Region {
+            width: win.width
+            height: 45
+        }
 
         Rectangle {
-            anchors.fill: parent
+            id: barBackground
+            anchors.top: parent.top
+            width: parent.width
+            height: 45
             color: HyprUITheme.active.background
             opacity: 0.95
             
-            // Bottom shadow/border
             Rectangle {
                 anchors.bottom: parent.bottom
                 width: parent.width
@@ -57,17 +76,16 @@ Scope {
                         model: Hypr.workspaces.values
                         
                         Rectangle {
+                            id: wsRect
                             implicitWidth: 24
                             implicitHeight: 24
-                            radius: 0 // Square boxes
                             color: modelData.id === Hypr.activeWsId ? HyprUITheme.primary : HyprUITheme.active.surface
-                            border.color: "transparent" // Eliminate border color
-                            border.width: modelData.lastIpcObject.windows > 0 ? 1 : 0
                             
                             Text {
                                 anchors.centerIn: parent
                                 text: modelData.id
                                 color: modelData.id === Hypr.activeWsId ? HyprUITheme.active.background : HyprUITheme.active.text
+                                font.family: "MesloLGS NF"
                                 font.pixelSize: 12
                                 font.bold: true
                             }
@@ -80,12 +98,12 @@ Scope {
                     }
                 }
 
-                // Center: Window Title
                 Text {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
                     text: Hypr.activeToplevel?.title || "Desktop"
                     color: HyprUITheme.active.text
+                    font.family: "MesloLGS NF"
                     font.pixelSize: 14
                     elide: Text.ElideRight
                     font.bold: true
@@ -95,15 +113,72 @@ Scope {
                 RowLayout {
                     spacing: 15
                     
+                    // System Tray
+                    RowLayout {
+                        spacing: 10
+                        Repeater {
+                            model: SystemTray.items.values
+                            delegate: Item {
+                                id: trayItemRoot
+                                implicitWidth: 24
+                                implicitHeight: 24
+                                
+                                Image {
+                                    anchors.fill: parent
+                                    source: modelData.icon || ""
+                                    fillMode: Image.PreserveAspectFit
+                                }
+                                
+                                MouseArea {
+                                    anchors.fill: parent
+                                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                    hoverEnabled: true
+                                    onClicked: (mouse) => {
+                                        if (mouse.button === Qt.LeftButton) {
+                                            modelData.activate();
+                                        } else {
+                                            // Map click position to window coordinates for the display() function
+                                            var windowPos = trayItemRoot.mapToItem(win.contentItem, mouse.x, mouse.y);
+                                            modelData.display(win, windowPos.x, windowPos.y);
+                                        }
+                                    }
+                                    onEntered: trayTooltip.requestShow()
+                                    onExited: trayTooltip.requestHide()
+                                }
+                                
+                                Tooltip {
+                                    id: trayTooltip
+                                    text: modelData.title || modelData.id
+                                    orientation: "bottom"
+                                    parent: win.contentItem
+                                    target: trayItemRoot
+                                }
+                            }
+                        }
+                    }
+
                     // Network
                     Text {
-                        id: wifiIcon
+                        id: networkText
                         text: Network.wifiEnabled ? (Network.active ? "󰖩" : "󰖩") : "󰖪"
                         color: Network.active ? HyprUITheme.primary : HyprUITheme.active.text
+                        font.family: "MesloLGS NF"
                         font.pixelSize: 16
+                        
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: Quickshell.execDetached(["kitty", "-e", "nmtui"]) // Launch nmtui on click
+                            onClicked: Quickshell.execDetached(["kitty", "-e", "nmtui"])
+                            hoverEnabled: true
+                            onEntered: wifiTooltip.requestShow()
+                            onExited: wifiTooltip.requestHide()
+                        }
+                        
+                        Tooltip {
+                            id: wifiTooltip
+                            text: Network.active ? "Connected: " + Network.active.ssid : "Disconnected"
+                            orientation: "bottom"
+                            parent: win.contentItem
+                            target: networkText
                         }
                     }
                     
@@ -112,15 +187,16 @@ Scope {
                         text: "󰂯"
                         color: Bluetooth.defaultAdapter?.enabled ? HyprUITheme.primary : HyprUITheme.active.text
                         opacity: 0.8
+                        font.family: "MesloLGS NF"
                         font.pixelSize: 16
                         MouseArea {
                             anchors.fill: parent
-                            acceptedButtons: Qt.LeftButton | Qt.RightButton // Accept both left and right clicks
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
                             onClicked: (mouse) => {
                                 if (mouse.button === Qt.LeftButton) {
-                                    Quickshell.execDetached(["/home/sohighman/.config/hypr/scripts/bluetooth-control.sh", "toggle"]); // Left-click toggles using script
-                                } else if (mouse.button === Qt.RightButton) {
-                                    Quickshell.execDetached(["blueberry"]); // Right-click opens blueberry GUI
+                                    Quickshell.execDetached(["/home/sohighman/.config/hypr/scripts/bluetooth-control.sh", "toggle"]);
+                                } else {
+                                    Quickshell.execDetached(["blueberry"]);
                                 }
                             }
                         }
@@ -128,72 +204,88 @@ Scope {
                     
                     // Audio
                     Text {
+                        id: audioText
                         text: Audio.muted ? "󰝟" : "󰕾"
                         color: Audio.muted ? HyprUITheme.active.error : HyprUITheme.primary
+                        font.family: "MesloLGS NF"
                         font.pixelSize: 16
+                        
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: Quickshell.execDetached(["pavucontrol"]) // Launch pavucontrol on click
+                            onClicked: Quickshell.execDetached(["pavucontrol"])
+                            hoverEnabled: true
+                            onEntered: audioTooltip.requestShow()
+                            onExited: audioTooltip.requestHide()
+                        }
+                        
+                        Tooltip {
+                            id: audioTooltip
+                            text: "Volume: " + Math.round(Audio.volume * 100) + "%"
+                            orientation: "bottom"
+                            parent: win.contentItem
+                            target: audioText
                         }
                     }
 
                     // Battery
                     Text {
-                        id: batteryIcon
+                        id: battText
                         visible: UPower.displayDevice.isLaptopBattery
-                        
                         readonly property bool isCharging: UPower.displayDevice.state === UPowerDeviceState.Charging || UPower.displayDevice.state === UPowerDeviceState.FullyCharged
                         readonly property real percentage: UPower.displayDevice.percentage * 100
                         
                         text: {
                             if (isCharging) return " " + Math.round(percentage) + "%"
-                            
                             const icons = ["", "", "", "", ""]
                             const index = Math.min(Math.floor(percentage / 20), 4)
                             return icons[index] + " " + Math.round(percentage) + "%"
                         }
                         
-                        color: {
-                            if (isCharging) return HyprUITheme.active.green
-                            if (percentage <= 15) return HyprUITheme.active.error // Critical
-                            if (percentage <= 30) return HyprUITheme.secondary // Warning (using secondary accent)
-                            return HyprUITheme.active.green // Normal (green as requested)
-                        }
-                        
+                        color: isCharging ? HyprUITheme.active.green : (percentage <= 15 ? HyprUITheme.active.error : (percentage <= 30 ? HyprUITheme.secondary : HyprUITheme.active.green))
+                        font.family: "MesloLGS NF"
                         font.pixelSize: 14
                         font.bold: true
                         
-                        function formatSeconds(s) {
-                            if (s <= 0) return "Calculating..."
-                            const h = Math.floor(s / 3600)
-                            const m = Math.floor((s % 3600) / 60)
-                            return h + "h " + m + "m"
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onEntered: battTooltip.requestShow()
+                            onExited: battTooltip.requestHide()
+                        }
+
+                        Tooltip {
+                            id: battTooltip
+                            text: (UPower.onBattery ? "Remaining: " : "Time to Full: ") + root.formatSeconds(UPower.onBattery ? UPower.displayDevice.timeToEmpty : UPower.displayDevice.timeToFull)
+                            orientation: "bottom"
+                            parent: win.contentItem
+                            target: battText
                         }
                     }
 
                     // Night Light
                     Text {
-                        text: "󱩍" // Night light icon
+                        text: "󱩍"
                         color: HyprUITheme.active.text
+                        font.family: "MesloLGS NF"
                         font.pixelSize: 16
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: Quickshell.execDetached(["/home/sohighman/Documentos/Scripts/toggle_night_light.sh"]) // Toggle night light script
+                            onClicked: Quickshell.execDetached(["/home/sohighman/Documentos/Scripts/toggle_night_light.sh"])
                         }
                     }
                     
-                    // Clock
                     Text {
                         text: Time.timeStr
                         color: HyprUITheme.active.text
+                        font.family: "MesloLGS NF"
                         font.pixelSize: 14
                         font.bold: true
                     }
                     
-                    // Power
                     Text {
                         text: ""
                         color: HyprUITheme.active.error
+                        font.family: "MesloLGS NF"
                         font.pixelSize: 16
                         MouseArea {
                             anchors.fill: parent

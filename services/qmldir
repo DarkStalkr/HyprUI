@@ -17,3 +17,4 @@ singleton Strings 1.0 Strings.qml
 singleton SysInfo 1.0 SysInfo.qml
 singleton Images 1.0 Images.qml
 singleton Hypr 1.0 Hypr.qml
+singleton Notifications 1.0 Notifications.qml

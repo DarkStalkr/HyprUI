@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 import "../services"
+import "../components"
 
 Scope {
     id: root
@@ -94,6 +95,7 @@ Scope {
                         anchors.rightMargin: 15
                         verticalAlignment: TextInput.AlignVCenter
                         color: HyprUITheme.active.text
+                        font.family: "MesloLGS NF"
                         font.pixelSize: 18
                         focus: true
                         
@@ -122,6 +124,7 @@ Scope {
                     clip: true
 
                     delegate: Rectangle {
+                        id: appItem
                         width: appListView.width
                         height: 50
                         radius: 8
@@ -141,6 +144,7 @@ Scope {
                             Text {
                                 text: modelData.name
                                 color: HyprUITheme.active.text
+                                font.family: "MesloLGS NF"
                                 font.pixelSize: 16
                                 font.bold: index === root.selectedIndex
                             }
@@ -148,10 +152,25 @@ Scope {
 
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: {
-                                Apps.launch(modelData);
-                                UI.launcherVisible = false;
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                            onClicked: (mouse) => {
+                                if (mouse.button === Qt.LeftButton) {
+                                    Apps.launch(modelData);
+                                    UI.launcherVisible = false;
+                                } else {
+                                    UI.pinApp(modelData.id);
+                                }
                             }
+                            hoverEnabled: true
+                            onEntered: launchTooltip.requestShow()
+                            onExited: launchTooltip.requestHide()
+                        }
+                        
+                        Tooltip {
+                            id: launchTooltip
+                            text: "Left: Launch | Right: Pin"
+                            parent: win.contentItem
+                            target: appItem
                         }
                     }
                 }

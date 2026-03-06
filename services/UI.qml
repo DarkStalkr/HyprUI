@@ -5,6 +5,13 @@ QtObject {
     property bool launcherVisible: false
     property bool dashboardVisible: false
     property bool controlCenterVisible: false
+    property var pinnedApps: ["librewolf", "kitty", "thunar", "vscodium"]
+    
+    function pinApp(appId) {
+        if (!pinnedApps.includes(appId)) {
+            pinnedApps = [...pinnedApps, appId];
+        }
+    }
     
     function toggleLauncher() {
         launcherVisible = !launcherVisible;

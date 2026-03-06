@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import "../services"
+import "../components"
 
 Scope {
     id: root
@@ -13,7 +14,8 @@ Scope {
         screen: root.screen
         visible: true
         
-        WlrLayershell.layer: WlrLayer.Bottom
+        // Changed to Overlay to ensure tooltips are on top of everything
+        WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "hyprui-sidebar"
         WlrLayershell.exclusiveZone: 60
         
@@ -23,11 +25,19 @@ Scope {
             left: true
         }
         
-        implicitWidth: 60
+        // Much wider to allow tooltips to show to the right
+        implicitWidth: 400
         color: "transparent"
+        
+        mask: Region {
+            width: 60
+            height: win.height
+        }
 
         Rectangle {
-            anchors.fill: parent
+            id: barBackground
+            width: 60
+            height: parent.height
             color: HyprUITheme.active.background
             opacity: 0.95
             
@@ -50,16 +60,20 @@ Scope {
                     Layout.alignment: Qt.AlignHCenter
                     spacing: 15
                     
-                    AppIcon { appId: "librewolf" }
-                    AppIcon { appId: "kitty" }
-                    AppIcon { appId: "thunar" }
-                    AppIcon { appId: "vscodium" }
+                    Repeater {
+                        model: UI.pinnedApps
+                        AppIcon { 
+                            appId: modelData 
+                            onUnpin: UI.pinnedApps = UI.pinnedApps.filter(id => id !== appId)
+                        }
+                    }
                 }
                 
                 Item { Layout.fillHeight: true }
                 
                 // Bottom: Dashboard Toggle
                 Rectangle {
+                    id: dashBtn
                     Layout.alignment: Qt.AlignHCenter
                     Layout.bottomMargin: 20
                     width: 40
@@ -70,6 +84,7 @@ Scope {
                     Text {
                         anchors.centerIn: parent
                         text: "󰕮"
+                        font.family: "MesloLGS NF"
                         font.pixelSize: 20
                         color: UI.dashboardVisible ? HyprUITheme.active.background : HyprUITheme.active.text
                     }
@@ -77,6 +92,17 @@ Scope {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: UI.toggleDashboard()
+                        hoverEnabled: true
+                        onEntered: dashTooltip.requestShow()
+                        onExited: dashTooltip.requestHide()
+                    }
+                    
+                    Tooltip {
+                        id: dashTooltip
+                        text: "Toggle Dashboard"
+                        orientation: "right"
+                        parent: win.contentItem
+                        target: dashBtn
                     }
                 }
             }
@@ -84,7 +110,9 @@ Scope {
     }
     
     component AppIcon: Rectangle {
+        id: iconRoot
         property string appId
+        signal unpin()
         readonly property var app: DesktopEntries.applications.values.find(a => a.id.toLowerCase().includes(appId.toLowerCase()))
         
         width: 44
@@ -105,9 +133,30 @@ Scope {
             id: ma
             anchors.fill: parent
             hoverEnabled: true
-            onEntered: parent.scale = 1.1
-            onExited: parent.scale = 1.0
-            onClicked: if (app) Apps.launch(app)
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
+            onEntered: {
+                parent.scale = 1.1;
+                appTooltip.requestShow();
+            }
+            onExited: {
+                parent.scale = 1.0;
+                appTooltip.requestHide();
+            }
+            onClicked: (mouse) => {
+                if (mouse.button === Qt.LeftButton) {
+                    if (app) Apps.launch(app);
+                } else {
+                    unpin();
+                }
+            }
+        }
+        
+        Tooltip {
+            id: appTooltip
+            text: app ? app.name : appId
+            orientation: "right"
+            parent: win.contentItem
+            target: iconRoot
         }
         
         Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutBack } }
