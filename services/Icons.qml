@@ -207,6 +207,20 @@ Singleton {
         return name[0].toUpperCase();
     }
 
+    function getOsdIcon(mode: string, value: real, isMuted: bool): string {
+        if (mode === "volume") {
+            if (isMuted || value === 0) return "󰝟"; // Muted
+            if (value < 0.33) return "󰕿"; // Low
+            if (value < 0.66) return "󰖀"; // Mid
+            return "󰕾"; // High
+        } else {
+            // Brightness
+            if (value < 0.33) return "󰃞"; // Low
+            if (value < 0.66) return "󰃟"; // Mid
+            return "󰃠"; // High
+        }
+    }
+
     function getTrayIcon(id: string, icon: string): string {
         for (const sub of Config.bar.tray.iconSubs)
             if (sub.id === id)

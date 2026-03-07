@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "../config"
 
 Singleton {
     id: root
@@ -9,12 +10,23 @@ Singleton {
     property real brightness: 0
     property bool initialized: false
 
+    function increase() {
+        set(brightness + Config.services.brightnessIncrement);
+    }
+
+    function decrease() {
+        set(brightness - Config.services.brightnessIncrement);
+    }
+
     function update() {
         getProc.running = true;
     }
 
     function set(value) {
-        let percent = Math.round(Math.max(0, Math.min(1, value)) * 100);
+        let next = Math.max(0, Math.min(1, value));
+        root.brightness = next;
+        
+        let percent = Math.round(next * 100);
         setProc.command = ["brightnessctl", "s", percent + "%"];
         setProc.running = true;
     }

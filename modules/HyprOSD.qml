@@ -8,7 +8,8 @@ Scope {
     id: root
     required property ShellScreen screen
 
-    readonly property bool visibleState: hideTimer.running
+    property bool active: false
+    readonly property bool visibleState: active || hideTimer.running
 
     property string mode: "volume" // "volume" or "brightness"
     property real value: mode === "volume" ? Audio.volume : Brightness.brightness
@@ -17,10 +18,12 @@ Scope {
         target: Audio
         function onVolumeChanged() { 
             root.mode = "volume";
+            root.active = true;
             hideTimer.restart(); 
         }
         function onMutedChanged() { 
             root.mode = "volume";
+            root.active = true;
             hideTimer.restart(); 
         }
     }
@@ -30,6 +33,7 @@ Scope {
         function onBrightnessChanged() {
             if (Brightness.initialized) {
                 root.mode = "brightness";
+                root.active = true;
                 hideTimer.restart();
             }
         }
@@ -38,12 +42,13 @@ Scope {
     Timer {
         id: hideTimer
         interval: 1800
+        onTriggered: root.active = false
     }
 
     PanelWindow {
         id: win
         screen: root.screen
-        visible: visibleState
+        visible: visibleState || container.opacity > 0
         
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "hyprui-osd"
@@ -84,7 +89,7 @@ Scope {
                 spacing: 15
 
                 Text {
-                    text: mode === "volume" ? (Audio.muted ? "󰝟" : "󰕾") : "󰃠"
+                    text: Icons.getOsdIcon(root.mode, root.value, Audio.muted)
                     font.family: "MesloLGS NF"
                     font.pixelSize: 36 // Increased from 28
                     color: mode === "volume" ? (Audio.muted ? HyprUITheme.active.error : HyprUITheme.primary) : HyprUITheme.secondary

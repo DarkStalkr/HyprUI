@@ -2,6 +2,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Services.Pipewire
 import QtQuick
+import "../config"
 
 Singleton {
     id: root
@@ -15,6 +16,14 @@ Singleton {
 
     readonly property bool muted: !!sink?.audio?.muted
     readonly property real volume: sink?.audio?.volume ?? 0
+
+    function increaseVolume(): void {
+        setVolume(volume + Config.services.audioIncrement);
+    }
+
+    function decreaseVolume(): void {
+        setVolume(volume - Config.services.audioIncrement);
+    }
 
     function setVolume(newVolume: real): void {
         if (sink?.ready && sink?.audio) {

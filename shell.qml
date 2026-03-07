@@ -41,6 +41,35 @@ ShellRoot {
         onPressed: UI.toggleControlCenter()
     }
 
+    // HYPRUI VOLUME
+    GlobalShortcut {
+        appid: "hyprui"
+        name: "increase_volume"
+        onPressed: Audio.increaseVolume()
+    }
+    GlobalShortcut {
+        appid: "hyprui"
+        name: "decrease_volume"
+        onPressed: Audio.decreaseVolume()
+    }
+    GlobalShortcut {
+        appid: "hyprui"
+        name: "toggle_mute"
+        onPressed: Audio.toggleMute()
+    }
+
+    // HYPRUI BRIGHTNESS
+    GlobalShortcut {
+        appid: "hyprui"
+        name: "increase_brightness"
+        onPressed: Brightness.increase()
+    }
+    GlobalShortcut {
+        appid: "hyprui"
+        name: "decrease_brightness"
+        onPressed: Brightness.decrease()
+    }
+
     Variants {
         model: Quickshell.screens
         delegate: Component {
