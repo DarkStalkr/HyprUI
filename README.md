@@ -10,7 +10,8 @@
 
 **HyprUI** is a high-performance, modular desktop shell ecosystem for Hyprland. Built on the **Quickshell/Qt6** framework, it bridges the gap between minimalist C utilities and modern UX by providing reactive widgets, glassmorphism aesthetics, and a powerful dynamic theme engine.
 
-https://github.com/DarkStalkr/HyprUI/blob/main/demo_hyprui.mp4
+https://github.com/user-attachments/assets/d3de58dd-9271-41c7-9f6b-4acef0785a4b
+
 ## Core Features
 
 ### Reactive Theme Engine
