@@ -28,9 +28,21 @@ Singleton {
             };
             
             root.notifications = [item, ...root.notifications];
-            
-            // Auto-expire popup logic would go in the UI module
         }
+    }
+    
+    // Internal function to trigger a UI notification
+    function send(summary, body, appName = "HyprUI", appIcon = "preferences-desktop-theme") {
+        const item = {
+            id: Math.floor(Math.random() * 100000),
+            summary: summary,
+            body: body,
+            appName: appName,
+            appIcon: appIcon,
+            time: new Date(),
+            expired: false
+        };
+        root.notifications = [item, ...root.notifications];
     }
     
     function remove(id) {

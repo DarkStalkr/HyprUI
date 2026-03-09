@@ -170,5 +170,8 @@ Singleton {
         let keys = Object.keys(themes);
         current = keys[(keys.indexOf(current) + 1) % keys.length];
         console.log("HyprUITheme: Cycling theme to: " + current);
+        
+        // Trigger accessibility notification
+        Notifications.send("Theme Changed", "HyprUI is now using: " + active.name);
     }
 }

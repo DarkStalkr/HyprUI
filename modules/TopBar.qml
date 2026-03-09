@@ -69,20 +69,22 @@ Scope {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 15
-                anchors.rightMargin: 15
-                spacing: 15
+                anchors.leftMargin: 25 
+                anchors.rightMargin: 25 
+                spacing: 30 
 
                 // Left: Workspaces
                 RowLayout {
-                    spacing: 8
+                    spacing: 12 
                     Repeater {
                         model: Hypr.workspaces.values
                         
                         Rectangle {
                             id: wsRect
-                            implicitWidth: 24
-                            implicitHeight: 24
+                            implicitWidth: 26
+                            implicitHeight: 26
+                            // Reverted radius to 0 for squares
+                            radius: 0
                             color: modelData.id === Hypr.activeWsId ? HyprUITheme.primary : HyprUITheme.active.surface
                             
                             Text {
@@ -115,11 +117,11 @@ Scope {
 
                 // Right: Status Icons
                 RowLayout {
-                    spacing: 15
+                    spacing: 20 
                     
                     // System Tray
                     RowLayout {
-                        spacing: 10
+                        spacing: 12 
                         Repeater {
                             model: SystemTray.items.values
                             delegate: Item {
@@ -166,7 +168,7 @@ Scope {
                         text: Network.wifiEnabled ? (Network.active ? "󰖩" : "󰖩") : "󰖪"
                         color: Network.active ? HyprUITheme.primary : HyprUITheme.active.text
                         font.family: "MesloLGS NF"
-                        font.pixelSize: 16
+                        font.pixelSize: 18 
                         
                         MouseArea {
                             anchors.fill: parent
@@ -191,7 +193,7 @@ Scope {
                         color: Bluetooth.defaultAdapter?.enabled ? HyprUITheme.primary : HyprUITheme.active.text
                         opacity: 0.8
                         font.family: "MesloLGS NF"
-                        font.pixelSize: 16
+                        font.pixelSize: 18 
                         MouseArea {
                             anchors.fill: parent
                             acceptedButtons: Qt.LeftButton | Qt.RightButton
@@ -211,7 +213,7 @@ Scope {
                         text: Audio.muted ? "󰝟" : "󰕾"
                         color: Audio.muted ? HyprUITheme.active.error : HyprUITheme.primary
                         font.family: "MesloLGS NF"
-                        font.pixelSize: 16
+                        font.pixelSize: 18 
                         
                         MouseArea {
                             anchors.fill: parent
@@ -270,7 +272,7 @@ Scope {
                         text: "󱩍"
                         color: HyprUITheme.active.text
                         font.family: "MesloLGS NF"
-                        font.pixelSize: 16
+                        font.pixelSize: 18 
                         MouseArea {
                             anchors.fill: parent
                             onClicked: Quickshell.execDetached(["/home/sohighman/Documentos/Scripts/toggle_night_light.sh"])
@@ -289,7 +291,7 @@ Scope {
                         text: ""
                         color: HyprUITheme.active.error
                         font.family: "MesloLGS NF"
-                        font.pixelSize: 16
+                        font.pixelSize: 18 
                         MouseArea {
                             anchors.fill: parent
                             onClicked: Quickshell.execDetached(["wlogout"])

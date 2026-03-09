@@ -6,6 +6,7 @@ import Quickshell.Wayland
 import Quickshell.Services.UPower
 import Quickshell.Services.Mpris
 import Quickshell.Bluetooth
+import "ControlCenter"
 import "../services"
 import "../components"
 
@@ -31,21 +32,11 @@ Scope {
         WlrLayershell.namespace: "hyprui-controlcenter"
         WlrLayershell.keyboardFocus: visibleState ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
         
-        anchors {
-            top: true
-            right: true
-            bottom: true
-            left: true
-        }
-        
+        anchors { top: true; bottom: true; left: true; right: true }
         color: "transparent"
 
-        Timer {
-            id: animationTimer
-            interval: 300
-        }
+        Timer { id: animationTimer; interval: 350 }
 
-        // Invisible background for clicking out
         MouseArea {
             anchors.fill: parent
             enabled: visibleState
@@ -57,376 +48,408 @@ Scope {
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             anchors.right: parent.right
-            anchors.margins: 10
-            width: 450
+            anchors.margins: 12
+            width: 520
             
-            // Slide animation from right using offset
-            property int offset: visibleState ? 0 : width + 20
+            property int offset: visibleState ? 0 : width + 50
             transform: Translate { x: container.offset }
-            Behavior on offset { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
+            Behavior on offset { NumberAnimation { duration: 350; easing.type: Easing.OutQuint } }
 
             opacity: visibleState ? 1.0 : 0.0
-            Behavior on opacity { NumberAnimation { duration: 250 } }
+            Behavior on opacity { NumberAnimation { duration: 300 } }
 
             radius: HyprUITheme.active.rounding
             color: HyprUITheme.active.background
-            border.color: HyprUITheme.primary
+            border.color: Qt.rgba(HyprUITheme.primary.r, HyprUITheme.primary.g, HyprUITheme.primary.b, 0.4)
             border.width: 1
+            clip: true
             
-            ColumnLayout {
+            RowLayout {
                 anchors.fill: parent
-                anchors.margins: 20
-                spacing: 20
+                spacing: 0
                 
-                // Header
-                RowLayout {
+                NavRail {
+                    id: navRail
+                    activeIndex: stack.currentIndex
+                    onIndexChanged: (index) => stack.currentIndex = index
+                    rounding: container.radius
+                }
+                
+                ColumnLayout {
                     Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.margins: 25
+                    spacing: 20
                     
-                    Text {
-                        text: "Control Center"
-                        color: HyprUITheme.active.text
-                        font.family: "MesloLGS NF"
-                        font.pixelSize: 24
-                        font.bold: true
-                    }
-                    
-                    Item { Layout.fillWidth: true }
-                    
-                    Text {
-                        text: "󰅖"
-                        color: HyprUITheme.active.text
-                        font.family: "MesloLGS NF"
-                        font.pixelSize: 20
-                        MouseArea {
-                            anchors.fill: parent
+                    // Header
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 15
+                        
+                        ColumnLayout {
+                            spacing: 2
+                            Text {
+                                text: {
+                                    switch(stack.currentIndex) {
+                                        case 0: return "System";
+                                        case 1: return "Media";
+                                        case 2: return "Notifications";
+                                        default: return "Settings";
+                                    }
+                                }
+                                color: HyprUITheme.active.text
+                                font.family: "MesloLGS NF"
+                                font.pixelSize: 24
+                                font.bold: true
+                            }
+                            Text {
+                                text: {
+                                    switch(stack.currentIndex) {
+                                        case 0: return "Status & Settings";
+                                        case 1: return "Now Playing";
+                                        case 2: return "Recent Activity";
+                                        default: return "Manage options";
+                                    }
+                                }
+                                color: HyprUITheme.active.text
+                                font.family: "MesloLGS NF"
+                                font.pixelSize: 12
+                                opacity: 0.5
+                            }
+                        }
+                        
+                        Item { Layout.fillWidth: true }
+                        
+                        IconButton {
+                            icon: "󰅖"
                             onClicked: UI.controlCenterVisible = false
                         }
                     }
-                }
 
-                // Scrollable Content
-                Flickable {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    contentHeight: contentColumn.implicitHeight
-                    clip: true
-                    
-                    ScrollBar.vertical: ScrollBar {
-                        policy: ScrollBar.AsNeeded
-                    }
-
-                    ColumnLayout {
-                        id: contentColumn
-                        width: parent.width
-                        spacing: 25
-
-                        // --- SECTION: SYSTEM ---
+                    StackLayout {
+                        id: stack
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        currentIndex: 0
+                        
+                        // --- PANE: SYSTEM ---
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 15
+                            Layout.fillHeight: true
+                            spacing: 20
 
-                            // System Quick Toggles
-                            GridLayout {
-                                columns: 2
+                            Flickable {
                                 Layout.fillWidth: true
-                                columnSpacing: 10
-                                rowSpacing: 10
+                                Layout.fillHeight: true
+                                contentHeight: systemScrollColumn.implicitHeight
+                                clip: true
+                                ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
                                 
-                                Rectangle {
-                                    Layout.fillWidth: true
-                                    height: 60
-                                    radius: 12
-                                    color: Network.active ? HyprUITheme.primary : HyprUITheme.active.surface
+                                ColumnLayout {
+                                    id: systemScrollColumn
+                                    width: parent.width
+                                    spacing: 30 
                                     
-                                    RowLayout {
-                                        anchors.centerIn: parent
-                                        spacing: 10
-                                        Text { 
-                                            text: "󰖩"
-                                            color: Network.active ? HyprUITheme.active.background : HyprUITheme.active.text
-                                            font.family: "MesloLGS NF"
-                                            font.pixelSize: 20 
-                                        }
-                                        Text { 
-                                            text: "Wi-Fi"
-                                            color: Network.active ? HyprUITheme.active.background : HyprUITheme.active.text
-                                            font.family: "MesloLGS NF"
-                                            font.bold: true 
-                                        }
-                                    }
-                                    MouseArea { anchors.fill: parent; onClicked: Quickshell.execDetached(["kitty", "-e", "nmtui"]) }
-                                }
-                                
-                                Rectangle {
-                                    Layout.fillWidth: true
-                                    height: 60
-                                    radius: 12
-                                    color: (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled) ? HyprUITheme.secondary : HyprUITheme.active.surface
-                                    
-                                    RowLayout {
-                                        anchors.centerIn: parent
-                                        spacing: 10
-                                        Text { 
-                                            text: "󰂯"
-                                            color: (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled) ? HyprUITheme.active.background : HyprUITheme.active.text
-                                            font.family: "MesloLGS NF"
-                                            font.pixelSize: 20 
-                                        }
-                                        Text { 
-                                            text: "Bluetooth"
-                                            color: (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled) ? HyprUITheme.active.background : HyprUITheme.active.text
-                                            font.family: "MesloLGS NF"
-                                            font.bold: true 
-                                        }
-                                    }
-                                    MouseArea { 
-                                        anchors.fill: parent
-                                        onClicked: {
-                                            if (Bluetooth.defaultAdapter) {
-                                                Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter.enabled
-                                            } else {
-                                                Quickshell.execDetached(["blueberry"])
-                                            }
-                                        }
-                                        onPressAndHold: Quickshell.execDetached(["blueberry"])
-                                    }
-                                }
-                            }
-
-                            // Volume Slider
-                            ColumnLayout {
-                                Layout.fillWidth: true
-                                spacing: 10
-                                RowLayout {
-                                    Text { text: "Volume"; color: HyprUITheme.active.text; font.family: "MesloLGS NF"; font.bold: true }
-                                    Item { Layout.fillWidth: true }
-                                    Text { text: Math.round(Audio.volume * 100) + "%"; color: HyprUITheme.active.text; font.family: "MesloLGS NF"; opacity: 0.8 }
-                                }
-                                Rectangle {
-                                    id: volSlider
-                                    Layout.fillWidth: true
-                                    height: 12
-                                    radius: 6
-                                    color: HyprUITheme.active.surface
-                                    
-                                    Rectangle {
-                                        width: parent.width * Math.min(1.0, Audio.volume)
-                                        height: parent.height
-                                        radius: 6
-                                        color: HyprUITheme.primary
-                                        Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
-                                    }
-                                    
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        onPressed: (mouse) => Audio.setVolume(mouse.x / width)
-                                        onPositionChanged: (mouse) => Audio.setVolume(Math.max(0, Math.min(1.5, mouse.x / width)))
-                                    }
-                                }
-                            }
-
-                            // Brightness Slider
-                            ColumnLayout {
-                                Layout.fillWidth: true
-                                spacing: 10
-                                RowLayout {
-                                    Text { text: "Brightness"; color: HyprUITheme.active.text; font.family: "MesloLGS NF"; font.bold: true }
-                                    Item { Layout.fillWidth: true }
-                                    Text { text: Math.round(Brightness.brightness * 100) + "%"; color: HyprUITheme.active.text; font.family: "MesloLGS NF"; opacity: 0.8 }
-                                }
-                                Rectangle {
-                                    id: brightSlider
-                                    Layout.fillWidth: true
-                                    height: 12
-                                    radius: 6
-                                    color: HyprUITheme.active.surface
-                                    
-                                    Rectangle {
-                                        width: parent.width * Brightness.brightness
-                                        height: parent.height
-                                        radius: 6
-                                        color: HyprUITheme.secondary
-                                        Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
-                                    }
-                                    
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        onPressed: (mouse) => Brightness.set(mouse.x / width)
-                                        onPositionChanged: (mouse) => Brightness.set(Math.max(0, Math.min(1, mouse.x / width)))
-                                    }
-                                }
-                            }
-                        }
-
-                        // --- SECTION: MEDIA ---
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 15
-                            
-                            Text { 
-                                text: "Media"
-                                color: HyprUITheme.active.text
-                                font.family: "MesloLGS NF"
-                                font.pixelSize: 18
-                                font.bold: true 
-                            }
-
-                            Repeater {
-                                model: Mpris.players.values
-                                
-                                Rectangle {
-                                    Layout.fillWidth: true
-                                    Layout.preferredHeight: 120
-                                    radius: 15
-                                    color: HyprUITheme.active.surface
-                                    border.color: HyprUITheme.primary
-                                    border.width: modelData.playbackState === MprisPlaybackState.Playing ? 1 : 0
-                                    
-                                    RowLayout {
-                                        anchors.fill: parent
-                                        anchors.margins: 15
-                                        spacing: 15
+                                    StyledCard {
+                                        title: "Connectivity"
+                                        Layout.fillWidth: true
+                                        flat: true
                                         
-                                        Rectangle {
-                                            Layout.preferredWidth: 90
-                                            Layout.preferredHeight: 90
-                                            radius: 10
-                                            clip: true
-                                            color: HyprUITheme.active.background
-                                            
-                                            Image {
-                                                anchors.fill: parent
-                                                source: modelData.trackArtUrl || ""
-                                                fillMode: Image.PreserveAspectCrop
-                                                opacity: status === Image.Ready ? 1 : 0.3
+                                        RowLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 12
+                                            ToggleTile {
+                                                label: "Wi-Fi"
+                                                icon: "󰖩"
+                                                active: Network.active
+                                                onClicked: Quickshell.execDetached(["kitty", "-e", "nmtui"])
                                             }
-                                            
-                                            Text {
-                                                anchors.centerIn: parent
-                                                visible: parent.children[0].status !== Image.Ready
-                                                text: "󰝚"
-                                                font.family: "MesloLGS NF"
-                                                font.pixelSize: 32
-                                                color: HyprUITheme.active.text
+                                            ToggleTile {
+                                                label: "Bluetooth"
+                                                icon: "󰂯"
+                                                active: Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled
+                                                onClicked: {
+                                                    if (Bluetooth.defaultAdapter) Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter.enabled
+                                                }
                                             }
                                         }
+                                    }
+                                    
+                                    StyledCard {
+                                        title: "Audio & Display"
+                                        Layout.fillWidth: true
+                                        flat: true
                                         
                                         ColumnLayout {
                                             Layout.fillWidth: true
-                                            spacing: 2
-                                            Text {
-                                                text: modelData.trackTitle || "No Title"
-                                                color: HyprUITheme.active.text
-                                                font.family: "MesloLGS NF"
-                                                font.bold: true
-                                                font.pixelSize: 16
-                                                elide: Text.ElideRight
-                                                Layout.fillWidth: true
-                                            }
-                                            Text {
-                                                text: {
-                                                    if (Array.isArray(modelData.trackArtists)) return modelData.trackArtists.join(", ");
-                                                    return modelData.trackArtist || "Unknown Artist";
-                                                }
-                                                color: HyprUITheme.active.text
-                                                font.family: "MesloLGS NF"
-                                                opacity: 0.7
-                                                font.pixelSize: 14
-                                                elide: Text.ElideRight
-                                                Layout.fillWidth: true
+                                            spacing: 25
+
+                                            ModernSlider {
+                                                label: "Output Volume"
+                                                icon: "󰕾"
+                                                iconSize: 24 
+                                                value: Audio.volume
+                                                accentColor: HyprUITheme.primary
+                                                onMoved: (v) => Audio.setVolume(v)
                                             }
                                             
-                                            Item { Layout.preferredHeight: 10 }
-                                            
-                                            RowLayout {
-                                                spacing: 15
-                                                Text { 
-                                                    text: "󰒮"
-                                                    color: modelData.canGoPrevious ? HyprUITheme.active.text : "gray"
-                                                    font.family: "MesloLGS NF"
-                                                    font.pixelSize: 20
-                                                    MouseArea { anchors.fill: parent; enabled: modelData.canGoPrevious; onClicked: modelData.previous() } 
-                                                }
-                                                Text { 
-                                                    text: (modelData.playbackState === MprisPlaybackState.Playing) ? "󰏤" : "󰐊"
-                                                    color: HyprUITheme.primary
-                                                    font.family: "MesloLGS NF"
-                                                    font.pixelSize: 28
-                                                    MouseArea { anchors.fill: parent; onClicked: modelData.togglePlaying() }
-                                                }
-                                                Text { 
-                                                    text: "󰒭"
-                                                    color: modelData.canGoNext ? HyprUITheme.active.text : "gray"
-                                                    font.family: "MesloLGS NF"
-                                                    font.pixelSize: 20
-                                                    MouseArea { anchors.fill: parent; enabled: modelData.canGoNext; onClicked: modelData.next() } 
-                                                }
+                                            ModernSlider {
+                                                label: "Backlight"
+                                                icon: "󰃠"
+                                                iconSize: 24 
+                                                value: Brightness.brightness
+                                                accentColor: HyprUITheme.secondary
+                                                onMoved: (v) => Brightness.set(v)
                                             }
                                         }
+                                    }
+                                    
+                                    Item { Layout.fillHeight: true; visible: systemScrollColumn.implicitHeight < parent.height }
+                                }
+                            }
+
+                            StyledCard {
+                                title: "Power & Session"
+                                Layout.fillWidth: true
+                                flat: true
+                                
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 15
+                                    
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 15
+                                        MaterialIcon { text: "󰁹"; opacity: 0.7; font.pixelSize: 24 }
+                                        ColumnLayout {
+                                            spacing: 2
+                                            Text { text: "Battery: " + Math.round(UPower.displayDevice.percentage * 100) + "%"; color: HyprUITheme.active.text; font.bold: true; elide: Text.ElideRight; Layout.fillWidth: true }
+                                            Text { text: UPower.displayDevice.state === UPowerDeviceState.Charging ? "Charging" : "On Battery"; color: HyprUITheme.active.text; font.pixelSize: 11; opacity: 0.6; elide: Text.ElideRight; Layout.fillWidth: true }
+                                        }
+                                        Item { Layout.fillWidth: true }
+                                        Text { 
+                                            text: {
+                                                const s = UPower.onBattery ? UPower.displayDevice.timeToEmpty : UPower.displayDevice.timeToFull;
+                                                if (s <= 0) return "";
+                                                return Math.floor(s/3600) + "h " + Math.floor((s%3600)/60) + "m";
+                                            }
+                                            color: HyprUITheme.active.text; opacity: 0.7 
+                                        }
+                                    }
+
+                                    RowLayout {
+                                        Layout.fillWidth: true; spacing: 10
+                                        SessionButton { icon: "󰐥"; label: "Power Off"; btnColor: HyprUITheme.active.error; onClicked: Quickshell.execDetached(["shutdown", "now"]) }
+                                        SessionButton { icon: "󰑐"; label: "Reboot"; btnColor: HyprUITheme.secondary; onClicked: Quickshell.execDetached(["reboot"]) }
+                                        SessionButton { icon: "󰍃"; label: "Logout"; btnColor: HyprUITheme.primary; onClicked: Quickshell.execDetached(["hyprctl", "dispatch", "exit"]) }
                                     }
                                 }
                             }
                         }
-
-                        // --- SECTION: NOTIFICATIONS ---
-                        ColumnLayout {
+                        
+                        // --- PANE: MEDIA ---
+                        Flickable {
                             Layout.fillWidth: true
-                            spacing: 15
+                            Layout.fillHeight: true
+                            contentHeight: mediaColumn.implicitHeight
+                            clip: true
+                            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
                             
-                            Text { 
-                                text: "Notifications"
-                                color: HyprUITheme.active.text
-                                font.family: "MesloLGS NF"
-                                font.pixelSize: 18
-                                font.bold: true 
+                            ColumnLayout {
+                                id: mediaColumn
+                                width: parent.width
+                                spacing: 20
+                                
+                                Repeater {
+                                    model: Mpris.players.values
+                                    
+                                    StyledCard {
+                                        Layout.fillWidth: true
+                                        flat: true
+                                        
+                                        ColumnLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 15
+                                            
+                                            RowLayout {
+                                                Layout.fillWidth: true
+                                                spacing: 20
+                                                Rectangle {
+                                                    width: 100; height: 100; radius: 15; clip: true
+                                                    color: HyprUITheme.active.surface
+                                                    Image {
+                                                        anchors.fill: parent
+                                                        source: modelData.trackArtUrl || ""
+                                                        fillMode: Image.PreserveAspectCrop
+                                                    }
+                                                    MaterialIcon { anchors.centerIn: parent; text: "󰝚"; font.pixelSize: 40; opacity: 0.3; visible: !parent.children[0].status === Image.Ready }
+                                                }
+                                                ColumnLayout {
+                                                    Layout.fillWidth: true
+                                                    spacing: 4
+                                                    Text { text: modelData.trackTitle || "No Title"; color: HyprUITheme.active.text; font.bold: true; font.pixelSize: 18; elide: Text.ElideRight; Layout.fillWidth: true }
+                                                    Text { text: modelData.trackArtist || "Unknown Artist"; color: HyprUITheme.active.text; opacity: 0.6; font.pixelSize: 14; elide: Text.ElideRight; Layout.fillWidth: true }
+                                                    Text { text: modelData.identity || "Player"; color: HyprUITheme.primary; opacity: 0.8; font.pixelSize: 12; font.italic: true; elide: Text.ElideRight; Layout.fillWidth: true }
+                                                    
+                                                    RowLayout {
+                                                        Layout.topMargin: 10; spacing: 20
+                                                        IconButton { icon: "󰒮"; onClicked: modelData.previous() }
+                                                        IconButton { icon: modelData.playbackState === MprisPlaybackState.Playing ? "󰏤" : "󰐊"; fontScale: 1.8; onClicked: modelData.togglePlaying() }
+                                                        IconButton { icon: "󰒭"; onClicked: modelData.next() }
+                                                    }
+                                                }
+                                            }
+                                            
+                                            // Player Volume Bar removed as requested
+                                        }
+                                    }
+                                }
+                                
+                                StyledCard {
+                                    visible: Mpris.players.values.length === 0
+                                    Layout.fillWidth: true
+                                    flat: true
+                                    Text { text: "No active media players"; color: HyprUITheme.active.text; opacity: 0.5; Layout.alignment: Qt.AlignCenter }
+                                }
                             }
-
-                            Text {
-                                text: "No recent notifications"
-                                color: HyprUITheme.active.text
-                                font.family: "MesloLGS NF"
-                                opacity: 0.5
-                                Layout.alignment: Qt.AlignCenter
+                        }
+                        
+                        // --- PANE: NOTIFICATIONS ---
+                        ColumnLayout {
+                            spacing: 20
+                            Layout.fillHeight: true
+                            
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Text { text: "Recent Activity"; color: HyprUITheme.active.text; font.bold: true; opacity: 0.7 }
+                                Item { Layout.fillWidth: true }
+                                TextButton { text: "Clear All"; onClicked: console.log("Clear All Notifs") }
+                            }
+                            
+                            Flickable {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                contentHeight: notifColumn.implicitHeight
+                                clip: true
+                                ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+                                
+                                ColumnLayout {
+                                    id: notifColumn
+                                    width: parent.width
+                                    spacing: 12
+                                    
+                                    Repeater {
+                                        model: 1 // Mock data
+                                        StyledCard {
+                                            Layout.fillWidth: true
+                                            flat: true
+                                            RowLayout {
+                                                Layout.fillWidth: true
+                                                spacing: 15
+                                                Rectangle { width: 44; height: 44; radius: 22; color: HyprUITheme.primary; opacity: 0.1; MaterialIcon { anchors.centerIn: parent; text: "󰵠"; color: HyprUITheme.primary; font.pixelSize: 20 } }
+                                                ColumnLayout {
+                                                    Layout.fillWidth: true
+                                                    spacing: 2
+                                                    Text { text: "System Update"; color: HyprUITheme.active.text; font.bold: true; elide: Text.ElideRight; Layout.fillWidth: true }
+                                                    Text { text: "A new version of HyprUI is available."; color: HyprUITheme.active.text; font.pixelSize: 12; opacity: 0.6; elide: Text.ElideRight; Layout.fillWidth: true }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    Item { Layout.fillHeight: true }
+                                }
                             }
                         }
                     }
-                }
-                
-                // Bottom Info
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 10
                     
-                    Text {
-                        id: batteryText
-                        visible: UPower.displayDevice.isLaptopBattery
-                        text: {
-                            const perc = Math.round(UPower.displayDevice.percentage * 100);
-                            const stateStr = UPower.displayDevice.state === UPowerDeviceState.Charging ? "󰂄 " : "󰁹 ";
-                            let timeStr = "";
-                            const seconds = UPower.onBattery ? UPower.displayDevice.timeToEmpty : UPower.displayDevice.timeToFull;
-                            if (seconds > 0) {
-                                const h = Math.floor(seconds / 3600);
-                                const m = Math.floor((seconds % 3600) / 60);
-                                timeStr = ` (${h}h ${m}m)`;
-                            }
-                            return stateStr + perc + "%" + timeStr;
-                        }
-                        color: UPower.displayDevice.state === UPowerDeviceState.Charging ? HyprUITheme.primary : HyprUITheme.active.text
-                        font.family: "MesloLGS NF"
-                        opacity: 0.8
-                    }
-                    
-                    Item { Layout.fillWidth: true }
-                    
-                    Text {
-                        text: "󰅐 " + Time.timeStr
-                        color: HyprUITheme.active.text
-                        font.family: "MesloLGS NF"
-                        opacity: 0.8
+                    // Footer
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 10
+                        Text { text: "HyprUI OS"; color: HyprUITheme.active.text; opacity: 0.4; font.italic: true }
+                        Item { Layout.fillWidth: true }
+                        Text { text: Time.timeStr; color: HyprUITheme.active.text; font.bold: true; opacity: 0.7 }
                     }
                 }
             }
         }
+    }
+    
+    // Internal Components
+    component IconButton: Rectangle {
+        property string icon: ""
+        property real fontScale: 1.0
+        signal clicked()
+        width: 44; height: 44; radius: 22; color: "transparent"
+        MaterialIcon { anchors.centerIn: parent; text: icon; font.pixelSize: 22 * fontScale; color: HyprUITheme.active.text }
+        MouseArea { anchors.fill: parent; onClicked: parent.clicked(); hoverEnabled: true; onEntered: parent.color = Qt.rgba(1,1,1,0.08); onExited: parent.color = "transparent" }
+    }
+    
+    component ToggleTile: Rectangle {
+        property string label: ""
+        property string icon: ""
+        property bool active: false
+        signal clicked()
+        Layout.fillWidth: true; height: 64; radius: 14
+        color: active ? HyprUITheme.primary : HyprUITheme.active.surface
+        RowLayout {
+            anchors.fill: parent; anchors.leftMargin: 15; anchors.rightMargin: 15; spacing: 12
+            MaterialIcon { text: icon; color: active ? HyprUITheme.active.background : HyprUITheme.active.text; font.pixelSize: 22 }
+            Text { text: label; color: active ? HyprUITheme.active.background : HyprUITheme.active.text; font.bold: true; elide: Text.ElideRight; Layout.fillWidth: true }
+        }
+        MouseArea { anchors.fill: parent; onClicked: parent.clicked() }
+    }
+    
+    component ModernSlider: ColumnLayout {
+        property string label: ""
+        property string icon: ""
+        property int iconSize: 20
+        property real value: 0
+        property color accentColor: HyprUITheme.primary
+        signal moved(real val)
+        Layout.fillWidth: true; spacing: 10
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 15
+            MaterialIcon { text: icon; font.pixelSize: iconSize; opacity: 0.7 }
+            Text { text: label; color: HyprUITheme.active.text; font.pixelSize: 14; font.bold: true; opacity: 0.9; elide: Text.ElideRight; Layout.fillWidth: true }
+            Text { text: Math.round(value * 100) + "%"; color: HyprUITheme.active.text; font.pixelSize: 12; opacity: 0.6 }
+        }
+        Rectangle {
+            Layout.fillWidth: true; height: 10; radius: 5; color: Qt.rgba(1,1,1,0.08)
+            Rectangle {
+                width: parent.width * Math.max(0, Math.min(1.0, value)); height: parent.height; radius: 5; color: accentColor
+                Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
+            }
+            MouseArea {
+                anchors.fill: parent
+                onPressed: (mouse) => moved(mouse.x / width)
+                onPositionChanged: (mouse) => moved(Math.max(0, Math.min(1.0, mouse.x / width)))
+            }
+        }
+    }
+
+    component SessionButton: Rectangle {
+        property string icon: ""
+        property string label: ""
+        property color btnColor: HyprUITheme.primary
+        signal clicked()
+        Layout.fillWidth: true; height: 74; radius: 15; color: HyprUITheme.active.surface
+        border.color: Qt.rgba(btnColor.r, btnColor.g, btnColor.b, 0.3); border.width: 1
+        ColumnLayout {
+            anchors.centerIn: parent; spacing: 4
+            MaterialIcon { text: icon; color: btnColor; font.pixelSize: 24; Layout.alignment: Qt.AlignHCenter }
+            Text { text: label; color: HyprUITheme.active.text; font.pixelSize: 11; font.bold: true; Layout.alignment: Qt.AlignHCenter }
+        }
+        MouseArea { anchors.fill: parent; onClicked: parent.clicked(); hoverEnabled: true; onEntered: parent.opacity = 0.8; onExited: parent.opacity = 1.0 }
+    }
+
+    component TextButton: Rectangle {
+        property string text: ""
+        signal clicked()
+        width: label.implicitWidth + 24; height: 34; radius: 17; color: Qt.rgba(1,1,1,0.08)
+        Text { id: label; anchors.centerIn: parent; text: parent.text; color: HyprUITheme.active.text; font.pixelSize: 12; font.bold: true }
+        MouseArea { anchors.fill: parent; onClicked: parent.clicked(); hoverEnabled: true; onEntered: parent.color = Qt.rgba(1,1,1,0.15); onExited: parent.color = Qt.rgba(1,1,1,0.08) }
     }
 }
