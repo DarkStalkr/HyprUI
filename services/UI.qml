@@ -1,39 +1,52 @@
 pragma Singleton
 import QtQuick
+import Quickshell
+import Quickshell.Io
 
 QtObject {
+    id: root
+
+    // UI States (reset on restart)
     property bool launcherVisible: false
     property bool dashboardVisible: false
     property bool controlCenterVisible: false
-    property var pinnedApps: ["librewolf", "kitty", "thunar", "vscodium"]
-    
-    function pinApp(appId) {
-        if (!pinnedApps.includes(appId)) {
-            pinnedApps = [...pinnedApps, appId];
+
+    // Alias directly into the JsonAdapter
+    property alias pinnedApps: _adapter.pinnedApps
+
+    property var _storage: FileView {
+        path: Quickshell.statePath("pinnedApps.json")
+        onAdapterUpdated: writeAdapter()
+
+        JsonAdapter {
+            id: _adapter
+            property list<string> pinnedApps: ["librewolf", "kitty", "thunar", "vscodium"]
         }
     }
-    
+
+    Component.onCompleted: _storage.reload() // Added back for initial loading
+
+    function pinApp(appId) {
+        if (!pinnedApps.includes(appId))
+            pinnedApps = [...pinnedApps, appId];
+    }
+
+    function unpinApp(appId) {
+        pinnedApps = pinnedApps.filter(app => app !== appId);
+    }
+
     function toggleLauncher() {
         launcherVisible = !launcherVisible;
-        if (launcherVisible) {
-            dashboardVisible = false;
-            controlCenterVisible = false;
-        }
+        if (launcherVisible) { dashboardVisible = false; controlCenterVisible = false; }
     }
 
     function toggleDashboard() {
         dashboardVisible = !dashboardVisible;
-        if (dashboardVisible) {
-            launcherVisible = false;
-            controlCenterVisible = false;
-        }
+        if (dashboardVisible) { launcherVisible = false; controlCenterVisible = false; }
     }
 
     function toggleControlCenter() {
         controlCenterVisible = !controlCenterVisible;
-        if (controlCenterVisible) {
-            launcherVisible = false;
-            dashboardVisible = false;
-        }
+        if (controlCenterVisible) { launcherVisible = false; dashboardVisible = false; }
     }
 }
