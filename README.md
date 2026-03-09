@@ -9,6 +9,7 @@
 </div>
 
 **HyprUI** is a high-performance, modular desktop shell ecosystem for Hyprland. Built on the **Quickshell/Qt6** framework, it bridges the gap between minimalist C utilities and modern UX by providing reactive widgets, glassmorphism aesthetics, and a powerful dynamic theme engine.
+
 <video width="320" height="240" controls>
   <source src="assets/demo_hyprui.mp4" type="video/mp4">
 </video>
