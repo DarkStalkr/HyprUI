@@ -36,6 +36,7 @@ The shell is divided into verified modules organized at the root for maximum per
 - [Hyprland](https://hyprland.org/)
 - [Pipewire](https://pipewire.org/) (for audio services)
 - [MesloLGS NF](https://github.com/romkatv/powerlevel10k-media) (Required font)
+- [wlogout]([https://github.com/romkatv/powerlevel10k-media](https://github.com/ArtsyMacaw/wlogout)) (Triggers wayland based logout menu)
 
 ### Launching the Shell
 Clone the repository and run the entry point from the root:
@@ -66,9 +67,8 @@ bind = SUPER, C, global, hyprui:toggle_control_center
 HyprUI is built upon the foundation of modern Linux desktop innovation. Special thanks to the following projects:
 
 - **Caelestial Shell**: This project's architecture and visual language were heavily inspired by the Caelestial shell dotfiles. The sidebar layout and theme cycling logic owe their heritage to the incredible work of the Caelestial community.
+https://github.com/caelestia-dots/shell
 - **Quickshell**: For providing the powerful reactive framework that makes this shell possible.
 
 ---
-<div align=center>
-Developed with dedication by sohighman
-</div>
+
