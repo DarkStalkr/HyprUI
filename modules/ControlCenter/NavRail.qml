@@ -39,9 +39,9 @@ Item {
 
         Repeater {
             model: [
-                { icon: "󰄬", label: "System" },
+                { icon: "", label: "System" },
                 { icon: "󰝚", label: "Media" },
-                { icon: "󰵠", label: "Notifications" }
+                { icon: "", label: "Notifications" }
             ]
             
             Item {
@@ -81,23 +81,23 @@ Item {
         Item { Layout.fillHeight: true }
         
         // Settings Button
-        Item {
-            Layout.preferredWidth: 60
-            Layout.preferredHeight: 60
-            Layout.alignment: Qt.AlignHCenter
+//        Item {
+//            Layout.preferredWidth: 60
+//            Layout.preferredHeight: 60
+//            Layout.alignment: Qt.AlignHCenter
+//            
+//            MaterialIcon {
+  //              anchors.centerIn: parent
+    //            text: "󰒓"
+      //          color: HyprUITheme.active.text
+        //        font.pixelSize: 24
+          //      opacity: 0.5
+            //}
             
-            MaterialIcon {
-                anchors.centerIn: parent
-                text: "󰒓"
-                color: HyprUITheme.active.text
-                font.pixelSize: 24
-                opacity: 0.5
-            }
-            
-            MouseArea {
-                anchors.fill: parent
-                onClicked: console.log("Open settings")
-            }
-        }
+            //MouseArea {
+              //  anchors.fill: parent
+               // onClicked: console.log("Open settings")
+         //   }
+       // }
     }
 }

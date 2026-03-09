@@ -3,16 +3,68 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import "../services"
+import "../components"
 
 Scope {
     id: root
     required property ShellScreen screen
 
+    property var activeNotif: null
+    property var queue: []
+    
+    // Watch the notifications list from service
+    Connections {
+        target: Notifications
+        function onNotificationsChanged() {
+            const list = Notifications.notifications;
+            if (list.length > 0) {
+                // If we have new items, add them to our queue if they aren't already there or currently active
+                for (let i = list.length - 1; i >= 0; i--) {
+                    const item = list[i];
+                    const inQueue = queue.some(q => q.id === item.id);
+                    const isActive = activeNotif && activeNotif.id === item.id;
+                    
+                    if (!inQueue && !isActive) {
+                        queue.push(item);
+                    }
+                }
+                processQueue();
+            }
+        }
+    }
+
+    function processQueue() {
+        if (!activeNotif && queue.length > 0) {
+            activeNotif = queue.shift();
+            displayTimer.restart();
+        }
+    }
+
+    function discard() {
+        if (activeNotif) {
+            Notifications.remove(activeNotif.id);
+            activeNotif = null;
+            // Short delay before showing next one to allow exit animation to complete
+            nextTimer.restart();
+        }
+    }
+
+    Timer {
+        id: displayTimer
+        interval: 3000 // 3 seconds as requested
+        onTriggered: discard()
+    }
+
+    Timer {
+        id: nextTimer
+        interval: 500 // Delay between notifications
+        onTriggered: processQueue()
+    }
+
     PanelWindow {
         id: win
         screen: root.screen
-        // Only show if there are notifications
-        visible: Notifications.notifications.length > 0
+        visible: activeNotif !== null || exitAnimation.running
         
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "hyprui-notifications"
@@ -22,160 +74,133 @@ Scope {
             right: true
         }
         
-        // Offset from corner
-        mask: Region {} 
-        
-        implicitWidth: 400
-        implicitHeight: 800
+        implicitWidth: 440
+        implicitHeight: 160
         color: "transparent"
 
-        ListView {
-            id: listView
-            anchors.fill: parent
-            anchors.margins: 20
-            anchors.topMargin: 60 // Below top bar
-            spacing: 12
-            model: Notifications.notifications
+        Item {
+            id: container
+            width: 400
+            height: notificationCard.height
+            anchors.top: parent.top
+            anchors.topMargin: 60
+            anchors.right: parent.right
+            anchors.rightMargin: 20
             
-            // Smoother list transitions
-            add: Transition {
-                NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 300 }
-                NumberAnimation { property: "x"; from: 100; to: 0; duration: 300; easing.type: Easing.OutQuint }
-            }
-            remove: Transition {
-                NumberAnimation { property: "opacity"; to: 0; duration: 200 }
-                NumberAnimation { property: "scale"; to: 0.8; duration: 200 }
-            }
-            displaced: Transition {
-                NumberAnimation { properties: "y"; duration: 200 }
+            // State-based visibility for animations
+            opacity: activeNotif !== null ? 1.0 : 0.0
+            scale: activeNotif !== null ? 1.0 : 0.9
+            
+            Behavior on opacity { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+            Behavior on scale { NumberAnimation { duration: 400; easing.type: Easing.OutBack } }
+            
+            // Slide animation
+            property int offset: activeNotif !== null ? 0 : 50
+            transform: Translate { x: container.offset }
+            Behavior on offset { NumberAnimation { duration: 400; easing.type: Easing.OutQuint } }
+
+            // Sequential appearance helper
+            NumberAnimation {
+                id: exitAnimation
+                target: container
+                property: "opacity"
+                to: 0
+                duration: 300
             }
 
-            delegate: Item {
-                width: listView.width - 20
-                height: contentLayout.implicitHeight + 30
-                anchors.horizontalCenter: parent.horizontalCenter
+            Rectangle {
+                id: notificationCard
+                width: parent.width
+                height: contentLayout.implicitHeight + 32
+                radius: 20
+                color: HyprUITheme.active.background
+                border.color: Qt.rgba(HyprUITheme.primary.r, HyprUITheme.primary.g, HyprUITheme.primary.b, 0.4)
+                border.width: 1
+                clip: true
 
-                // Simple shadow replacement
-                Rectangle {
+                // Full card click to discard
+                MouseArea {
                     anchors.fill: parent
-                    anchors.margins: -2
-                    radius: 18
-                    color: "black"
-                    opacity: 0.2
-                    transform: Translate { x: 2; y: 2 }
+                    onClicked: discard()
                 }
 
-                Rectangle {
+                RowLayout {
+                    id: contentLayout
                     anchors.fill: parent
-                    radius: 16
-                    color: HyprUITheme.active.background
-                    border.color: HyprUITheme.primary
-                    border.width: 1
-                    opacity: 0.98
-
-                    RowLayout {
-                        id: contentLayout
-                        anchors.fill: parent
-                        anchors.margins: 15
-                        spacing: 15
+                    anchors.margins: 16
+                    spacing: 16
+                    
+                    // App Icon / Image
+                    Rectangle {
+                        Layout.preferredWidth: 54
+                        Layout.preferredHeight: 54
+                        radius: 12
+                        color: HyprUITheme.active.surface
+                        clip: true
                         
-                        // App Icon / Image
-                        Rectangle {
-                            Layout.preferredWidth: 50
-                            Layout.preferredHeight: 50
-                            radius: 10
-                            clip: true
-                            color: HyprUITheme.active.surface
-                            
-                            Image {
-                                anchors.fill: parent
-                                anchors.margins: 5
-                                source: modelData.appIcon ? Quickshell.iconPath(modelData.appIcon) : ""
-                                fillMode: Image.PreserveAspectFit
-                                visible: source != ""
-                            }
-                            
-                            Text {
-                                anchors.centerIn: parent
-                                visible: parent.children[0].source == ""
-                                text: "󰂚"
-                                font.pixelSize: 24
-                                color: HyprUITheme.active.text
-                                opacity: 0.5
-                            }
+                        Image {
+                            anchors.fill: parent
+                            anchors.margins: 4
+                            source: activeNotif && activeNotif.appIcon ? Quickshell.iconPath(activeNotif.appIcon) : ""
+                            fillMode: Image.PreserveAspectFit
+                            visible: source != ""
                         }
                         
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 2
-                            
-                            RowLayout {
-                                Layout.fillWidth: true
-                                Text {
-                                    text: modelData.appName || "System"
-                                    color: HyprUITheme.primary
-                                    font.family: "MesloLGS NF"
-                                    font.pixelSize: 10
-                                    font.bold: true
-                                    opacity: 0.8
-                                    textFormat: Text.PlainText
-                                }
-                                Item { Layout.fillWidth: true }
-                                Text {
-                                    text: Qt.formatTime(modelData.time, "hh:mm")
-                                    color: HyprUITheme.active.text
-                                    font.family: "MesloLGS NF"
-                                    font.pixelSize: 10
-                                    opacity: 0.5
-                                }
-                            }
-
-                            Text {
-                                text: modelData.summary
-                                color: HyprUITheme.active.text
-                                font.family: "MesloLGS NF"
-                                font.pixelSize: 14
-                                font.bold: true
-                                elide: Text.ElideRight
-                                Layout.fillWidth: true
-                            }
-                            
-                            Text {
-                                text: modelData.body
-                                color: HyprUITheme.active.text
-                                font.family: "MesloLGS NF"
-                                font.pixelSize: 12
-                                opacity: 0.8
-                                wrapMode: Text.Wrap
-                                maximumLineCount: 3
-                                elide: Text.ElideRight
-                                Layout.fillWidth: true
-                            }
-                        }
-                        
-                        // Close Button
-                        Text {
-                            text: "󰅖"
-                            color: HyprUITheme.active.text
-                            font.family: "MesloLGS NF"
-                            font.pixelSize: 18
+                        MaterialIcon {
+                            anchors.centerIn: parent
+                            visible: !parent.children[0].visible
+                            text: "󰂚"
+                            font.pixelSize: 28
                             opacity: 0.5
-                            MouseArea {
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                onEntered: parent.opacity = 1.0
-                                onExited: parent.opacity = 0.5
-                                onClicked: Notifications.remove(modelData.id)
-                            }
                         }
                     }
-                }
-                
-                // Auto-hide Timer
-                Timer {
-                    interval: 6000 // 6 seconds
-                    running: true
-                    onTriggered: Notifications.remove(modelData.id)
+                    
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 4
+                        
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Text {
+                                text: activeNotif ? (activeNotif.appName || "System") : ""
+                                color: HyprUITheme.primary
+                                font.family: "MesloLGS NF"
+                                font.pixelSize: 11
+                                font.bold: true
+                                opacity: 0.8
+                            }
+                            Item { Layout.fillWidth: true }
+                            Text {
+                                text: activeNotif ? Qt.formatTime(activeNotif.time, "hh:mm") : ""
+                                color: HyprUITheme.active.text
+                                font.family: "MesloLGS NF"
+                                font.pixelSize: 11
+                                opacity: 0.4
+                            }
+                        }
+
+                        Text {
+                            text: activeNotif ? activeNotif.summary : ""
+                            color: HyprUITheme.active.text
+                            font.family: "MesloLGS NF"
+                            font.pixelSize: 15
+                            font.bold: true
+                            elide: Text.ElideRight
+                            Layout.fillWidth: true
+                        }
+                        
+                        Text {
+                            text: activeNotif ? activeNotif.body : ""
+                            color: HyprUITheme.active.text
+                            font.family: "MesloLGS NF"
+                            font.pixelSize: 13
+                            opacity: 0.7
+                            wrapMode: Text.Wrap
+                            maximumLineCount: 2
+                            elide: Text.ElideRight
+                            Layout.fillWidth: true
+                        }
+                    }
                 }
             }
         }

@@ -185,7 +185,7 @@ Scope {
                                             spacing: 25
 
                                             ModernSlider {
-                                                label: "Output Volume"
+                                                label: "Volume"
                                                 icon: "󰕾"
                                                 iconSize: 24 
                                                 value: Audio.volume
@@ -194,7 +194,7 @@ Scope {
                                             }
                                             
                                             ModernSlider {
-                                                label: "Backlight"
+                                                label: "Brightness"
                                                 icon: "󰃠"
                                                 iconSize: 24 
                                                 value: Brightness.brightness
@@ -346,7 +346,7 @@ Scope {
                                             RowLayout {
                                                 Layout.fillWidth: true
                                                 spacing: 15
-                                                Rectangle { width: 44; height: 44; radius: 22; color: HyprUITheme.primary; opacity: 0.1; MaterialIcon { anchors.centerIn: parent; text: "󰵠"; color: HyprUITheme.primary; font.pixelSize: 20 } }
+                                                Rectangle { width: 44; height: 44; radius: 22; color: HyprUITheme.primary; opacity: 0.1; MaterialIcon { anchors.centerIn: parent; text: ""; color: HyprUITheme.primary; font.pixelSize: 20 } }
                                                 ColumnLayout {
                                                     Layout.fillWidth: true
                                                     spacing: 2
