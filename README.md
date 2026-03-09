@@ -36,6 +36,7 @@ The shell is divided into verified modules organized at the root for maximum per
 - [Hyprland](https://hyprland.org/)
 - [Pipewire](https://pipewire.org/) (for audio services)
 - [MesloLGS NF](https://github.com/romkatv/powerlevel10k-media) (Required font)
+- [wlogout]([https://github.com/romkatv/powerlevel10k-media](https://github.com/ArtsyMacaw/wlogout)) (Triggers wayland based logout menu)
 
 ### Launching the Shell
 Clone the repository and run the entry point from the root:
