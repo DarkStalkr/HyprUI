@@ -44,7 +44,7 @@ The shell is divided into verified modules organized at the root for maximum per
 Clone the repository and run the entry point from the root:
 
 ```bash
-quickshell -p ~/Documentos/Projects/HyprUI/shell.qml
+quickshell -p ~/HyprUI/shell.qml
 ```
 
 ### Keybindings (Hyprland)
