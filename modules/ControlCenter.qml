@@ -367,7 +367,6 @@ Scope {
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 10
-                        Text { text: "HyprUI OS"; color: HyprUITheme.active.text; opacity: 0.4; font.italic: true }
                         Item { Layout.fillWidth: true }
                         Text { text: Time.timeStr; color: HyprUITheme.active.text; font.bold: true; opacity: 0.7 }
                     }

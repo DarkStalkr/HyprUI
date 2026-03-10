@@ -17,8 +17,20 @@ Scope {
     property bool active: false
     
     function triggerShow() {
-        active = true;
-        hideTimer.restart();
+        if (active) {
+            hideTimer.restart();
+        } else {
+            showDelayTimer.restart();
+        }
+    }
+
+    Timer {
+        id: showDelayTimer
+        interval: 3000 // Debounce show to avoid flickering during metadata changes (e.g. YouTube hovering)
+        onTriggered: {
+            active = true;
+            hideTimer.restart();
+        }
     }
 
     Connections {
@@ -67,6 +79,11 @@ Scope {
 
             Behavior on opacity { NumberAnimation { duration: 200 } }
             Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: active = false
+            }
 
             RowLayout {
                 anchors.fill: parent
