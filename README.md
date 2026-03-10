@@ -10,9 +10,7 @@
 
 **HyprUI** is a high-performance, modular desktop shell ecosystem for Hyprland. Built on the **Quickshell/Qt6** framework, it bridges the gap between minimalist C utilities and modern UX by providing reactive widgets, glassmorphism aesthetics, and a powerful dynamic theme engine.
 
-<video width="320" height="240" controls>
-  <source src="assets/demo_hyprui.mp4" type="video/mp4">
-</video>
+https://github.com/user-attachments/assets/d3de58dd-9271-41c7-9f6b-4acef0785a4b
 
 ## Core Features
 
@@ -40,13 +38,13 @@ The shell is divided into verified modules organized at the root for maximum per
 - [Hyprland](https://hyprland.org/)
 - [Pipewire](https://pipewire.org/) (for audio services)
 - [MesloLGS NF](https://github.com/romkatv/powerlevel10k-media) (Required font)
-- [wlogout]([https://github.com/romkatv/powerlevel10k-media](https://github.com/ArtsyMacaw/wlogout)) (Triggers wayland based logout menu)
+- [wlogout](https://github.com/ArtsyMacaw/wlogout) (Triggers wayland based logout menu)
 
 ### Launching the Shell
 Clone the repository and run the entry point from the root:
 
 ```bash
-quickshell -p ~/Documentos/Projects/HyprUI/shell.qml
+quickshell -p ~/HyprUI/shell.qml
 ```
 
 ### Keybindings (Hyprland)
