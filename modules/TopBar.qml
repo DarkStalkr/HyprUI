@@ -69,7 +69,7 @@ Scope {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 25 
+                anchors.leftMargin: 18 
                 anchors.rightMargin: 25 
                 spacing: 30 
 
