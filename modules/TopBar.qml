@@ -35,7 +35,7 @@ Scope {
         
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "hyprui-topbar"
-        WlrLayershell.exclusiveZone: 45
+        WlrLayershell.exclusiveZone: 57
         
         anchors {
             top: true
@@ -48,24 +48,23 @@ Scope {
         
         mask: Region {
             width: win.width
-            height: 45
+            height: 69
         }
 
         Rectangle {
             id: barBackground
             anchors.top: parent.top
-            width: parent.width
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 12
             height: 45
+            
+            radius: HyprUITheme.active.rounding
             color: HyprUITheme.active.background
             opacity: 0.95
             
-            Rectangle {
-                anchors.bottom: parent.bottom
-                width: parent.width
-                height: 1
-                color: HyprUITheme.primary
-                opacity: 0.3
-            }
+            border.color: Qt.rgba(HyprUITheme.primary.r, HyprUITheme.primary.g, HyprUITheme.primary.b, 0.4)
+            border.width: 1
 
             RowLayout {
                 anchors.fill: parent

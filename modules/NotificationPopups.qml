@@ -83,7 +83,7 @@ Scope {
         }
         
         implicitWidth: 440
-        implicitHeight: 160
+        implicitHeight: 600 // Increased height to prevent cropping
         color: "transparent"
 
         Item {
@@ -91,7 +91,7 @@ Scope {
             width: 400
             height: notificationCard.height
             anchors.top: parent.top
-            anchors.topMargin: 60
+            anchors.topMargin: 70 // Leave space below TopBar (57px)
             anchors.right: parent.right
             anchors.rightMargin: 20
             
@@ -149,7 +149,12 @@ Scope {
                         Image {
                             anchors.fill: parent
                             anchors.margins: 4
-                            source: activeNotif && activeNotif.appIcon ? Quickshell.iconPath(activeNotif.appIcon) : ""
+                            source: {
+                                if (!activeNotif) return "";
+                                if (activeNotif.image) return activeNotif.image;
+                                if (activeNotif.appIcon) return Quickshell.iconPath(activeNotif.appIcon);
+                                return "";
+                            }
                             fillMode: Image.PreserveAspectFit
                             visible: source != ""
                         }
@@ -193,7 +198,7 @@ Scope {
                             font.family: "MesloLGS NF"
                             font.pixelSize: 15
                             font.bold: true
-                            elide: Text.ElideRight
+                            wrapMode: Text.Wrap
                             Layout.fillWidth: true
                         }
                         
@@ -204,8 +209,6 @@ Scope {
                             font.pixelSize: 13
                             opacity: 0.7
                             wrapMode: Text.Wrap
-                            maximumLineCount: 2
-                            elide: Text.ElideRight
                             Layout.fillWidth: true
                         }
                     }

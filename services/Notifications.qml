@@ -12,8 +12,11 @@ Singleton {
 
     NotificationServer {
         id: server
+        
         onNotification: notif => {
             if (root.dnd) return;
+            
+            console.log(`[Notifications] Received from ${notif.appName}: ${notif.summary}`);
             
             const item = {
                 id: notif.id,
@@ -21,7 +24,7 @@ Singleton {
                 body: notif.body,
                 appName: notif.appName,
                 appIcon: notif.appIcon,
-                image: notif.image,
+                image: notif.image || (notif.hints && notif.hints["image-path"]) || "",
                 time: new Date(),
                 notif: notif,
                 expired: false

@@ -24,7 +24,7 @@ Scope {
         
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "hyprui-sidebar"
-        WlrLayershell.exclusiveZone: 60
+        WlrLayershell.exclusiveZone: 84
         
         anchors {
             top: true
@@ -36,29 +36,28 @@ Scope {
         color: "transparent"
         
         mask: Region {
-            width: 60
+            width: 84
             height: win.height
         }
 
         Rectangle {
             id: barBackground
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.margins: 12
             width: 60
-            height: parent.height
+            
+            radius: HyprUITheme.active.rounding
             color: HyprUITheme.active.background
             opacity: 0.95
             
-            // Right border
-            Rectangle {
-                anchors.right: parent.right
-                width: 1
-                height: parent.height
-                color: HyprUITheme.primary
-                opacity: 0.3
-            }
+            border.color: Qt.rgba(HyprUITheme.primary.r, HyprUITheme.primary.g, HyprUITheme.primary.b, 0.4)
+            border.width: 1
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.topMargin: 60 // Leave space for TopBar
+                anchors.topMargin: 48 // Adjusted for 12px parent margin (total 60px from top)
                 spacing: 20
                 
                 // Pinned Apps
