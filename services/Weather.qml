@@ -118,6 +118,10 @@ Singleton {
         interval: 1800000 // 30 mins
         running: true
         repeat: true
-        onTriggered: reload()
+        onTriggered: {
+            if (typeof root !== "undefined" && root !== null) {
+                reload();
+            }
+        }
     }
 }

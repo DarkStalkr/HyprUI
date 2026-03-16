@@ -65,7 +65,11 @@ Singleton {
         interval: 2000
         running: true
         repeat: true
-        onTriggered: update()
+        onTriggered: {
+            if (typeof root !== "undefined" && root !== null) {
+                update();
+            }
+        }
     }
 
     Component.onCompleted: update()

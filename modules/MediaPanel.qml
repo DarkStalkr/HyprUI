@@ -28,8 +28,10 @@ Scope {
         id: showDelayTimer
         interval: 3000 // Debounce show to avoid flickering during metadata changes (e.g. YouTube hovering)
         onTriggered: {
-            active = true;
-            hideTimer.restart();
+            if (typeof root !== "undefined" && root !== null) {
+                root.active = true;
+                hideTimer.restart();
+            }
         }
     }
 
@@ -43,7 +45,11 @@ Scope {
     Timer {
         id: hideTimer
         interval: 5000
-        onTriggered: active = false
+        onTriggered: {
+            if (typeof root !== "undefined" && root !== null) {
+                root.active = false;
+            }
+        }
     }
 
     PanelWindow {

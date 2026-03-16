@@ -42,7 +42,12 @@ Scope {
     Timer {
         id: hideTimer
         interval: 1800
-        onTriggered: root.active = false
+        onTriggered: {
+            // Prevent crash if the OSD was destroyed by screen disconnect
+            if (typeof root !== "undefined" && root !== null) {
+                root.active = false;
+            }
+        }
     }
 
     PanelWindow {

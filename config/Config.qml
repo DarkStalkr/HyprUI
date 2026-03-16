@@ -39,23 +39,25 @@ Singleton {
 
         interval: 500
         onTriggered: {
-            try {
-                // Parse current config to preserve structure and comments if possible
-                let config = {};
+            if (typeof root !== "undefined" && root !== null && typeof fileView !== "undefined" && fileView !== null) {
                 try {
-                    config = JSON.parse(fileView.text());
+                    // Parse current config to preserve structure and comments if possible
+                    let config = {};
+                    try {
+                        config = JSON.parse(fileView.text());
+                    } catch (e) {
+                        // If parsing fails, start with empty object
+                        config = {};
+                    }
+
+                    // Update config with current values
+                    config = serializeConfig();
+
+                    // Save to file with pretty printing
+                    fileView.setText(JSON.stringify(config, null, 2));
                 } catch (e) {
-                    // If parsing fails, start with empty object
-                    config = {};
+                    console.error("Failed to serialize config:", e.message);
                 }
-
-                // Update config with current values
-                config = serializeConfig();
-
-                // Save to file with pretty printing
-                fileView.setText(JSON.stringify(config, null, 2));
-            } catch (e) {
-                console.error("Failed to serialize config:", e.message);
             }
         }
     }
@@ -65,7 +67,9 @@ Singleton {
 
         interval: 2000
         onTriggered: {
-            recentlySaved = false;
+            if (typeof root !== "undefined" && root !== null) {
+                recentlySaved = false;
+            }
         }
     }
 

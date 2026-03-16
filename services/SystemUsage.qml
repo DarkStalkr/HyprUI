@@ -84,11 +84,12 @@ Singleton {
         repeat: true
         triggeredOnStart: true
         onTriggered: {
-            stat.reload();
-            meminfo.reload();
-            storage.running = true;
-            gpuUsage.running = true;
-            sensors.running = true;
+            // Prevent crash if QML garbage collection removes process wrappers
+            if (typeof stat !== "undefined" && stat !== null) stat.reload();
+            if (typeof meminfo !== "undefined" && meminfo !== null) meminfo.reload();
+            if (typeof storage !== "undefined" && storage !== null) storage.running = true;
+            if (typeof gpuUsage !== "undefined" && gpuUsage !== null) gpuUsage.running = true;
+            if (typeof sensors !== "undefined" && sensors !== null) sensors.running = true;
         }
     }
 

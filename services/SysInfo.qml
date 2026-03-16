@@ -60,7 +60,11 @@ Singleton {
         running: true
         repeat: true
         interval: 15000
-        onTriggered: fileUptime.reload()
+        onTriggered: {
+            if (typeof fileUptime !== "undefined" && fileUptime !== null) {
+                fileUptime.reload();
+            }
+        }
     }
 
     FileView {

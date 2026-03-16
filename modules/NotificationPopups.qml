@@ -52,13 +52,21 @@ Scope {
     Timer {
         id: displayTimer
         interval: 3000 // 3 seconds as requested
-        onTriggered: discard()
+        onTriggered: {
+            if (typeof root !== "undefined" && root !== null) {
+                discard();
+            }
+        }
     }
 
     Timer {
         id: nextTimer
         interval: 500 // Delay between notifications
-        onTriggered: processQueue()
+        onTriggered: {
+            if (typeof root !== "undefined" && root !== null) {
+                processQueue();
+            }
+        }
     }
 
     PanelWindow {

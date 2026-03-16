@@ -41,9 +41,11 @@ Item {
         id: showTimer
         interval: root.delay
         onTriggered: {
-            root.updatePosition();
-            root.visible = true;
-            root.opacity = 1;
+            if (typeof root !== "undefined" && root !== null) {
+                root.updatePosition();
+                root.visible = true;
+                root.opacity = 1;
+            }
         }
     }
     

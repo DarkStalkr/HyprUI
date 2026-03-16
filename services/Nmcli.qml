@@ -963,7 +963,7 @@ Singleton {
 
         interval: 4000
         onTriggered: {
-            if (root.pendingConnection) {
+            if (typeof root !== "undefined" && root !== null && root.pendingConnection) {
                 const connected = root.active && root.active.ssid === root.pendingConnection.ssid;
 
                 if (!connected && root.pendingConnection.callback) {
@@ -1037,7 +1037,7 @@ Singleton {
         triggeredOnStart: false
 
         onTriggered: {
-            if (root.pendingConnection) {
+            if (typeof root !== "undefined" && root !== null && root.pendingConnection) {
                 checkCount++;
                 const connected = root.active && root.active.ssid === root.pendingConnection.ssid;
 
@@ -1095,7 +1095,7 @@ Singleton {
                         immediateCheckTimer.checkCount = 0;
                     }
                 }
-            } else {
+            } else if (typeof root !== "undefined" && root !== null) {
                 immediateCheckTimer.stop();
                 immediateCheckTimer.checkCount = 0;
             }
@@ -1279,7 +1279,9 @@ Singleton {
         id: monitorRestartTimer
         interval: 2000
         onTriggered: {
-            monitorProc.running = true;
+            if (typeof monitorProc !== "undefined" && monitorProc !== null) {
+                monitorProc.running = true;
+            }
         }
     }
 
