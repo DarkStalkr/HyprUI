@@ -41,6 +41,14 @@ ShellRoot {
         onPressed: UI.toggleControlCenter()
     }
 
+    // HYPRUI PANEL SIZING
+    GlobalShortcut {
+        appid: "hyprui"
+        name: "cycle_panel_size"
+        description: "Cycle top bar and side bar between large / medium / small presets"
+        onPressed: UI.cycleSize()
+    }
+
     // HYPRUI VOLUME
     GlobalShortcut {
         appid: "hyprui"

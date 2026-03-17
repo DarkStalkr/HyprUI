@@ -15,8 +15,8 @@ Scope {
 
     // Detect if there's a fullscreen window on this monitor
     readonly property bool isFullscreen: {
-        const monitor = Hypr.monitors.values.find(m => m.name === root.screen.name);
-        return monitor && monitor.activeWorkspace ? monitor.activeWorkspace.hasFullscreen : false;
+        const monitor = Hypr.monitors.values.find(m => m.name === root.screen.name)
+        return monitor && monitor.activeWorkspace ? monitor.activeWorkspace.hasFullscreen : false
     }
 
     function formatSeconds(s) {
@@ -30,71 +30,85 @@ Scope {
     PanelWindow {
         id: win
         screen: root.screen
-        // Hide automatically in fullscreen
         visible: !root.isFullscreen
-        
+
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "hyprui-topbar"
-        WlrLayershell.exclusiveZone: 57
-        
+        // Derived from UI so the compositor always reserves exactly the right
+        // amount of space: margin + panelThickness + margin.
+        WlrLayershell.exclusiveZone: UI.exclusiveZone
+
         anchors {
             top: true
             left: true
             right: true
         }
-        
+
+        // The window is taller than the bar so popups / tooltips have room to
+        // render below it without being clipped. This value is intentionally
+        // NOT scaled with the preset — it is popup headroom, not bar height.
         implicitHeight: 300
         color: "transparent"
-        
+
+        // Input mask shrinks/grows with the reserved zone so hover targets
+        // always align with the visible bar, no matter the active preset.
         mask: Region {
-            width: win.width
-            height: 69
+            item: barBackground
         }
 
         Rectangle {
             id: barBackground
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.margins: 12
-            height: 45
-            
-            radius: HyprUITheme.active.rounding
-            color: HyprUITheme.active.background
+            anchors.top:    parent.top
+            anchors.left:   parent.left
+            anchors.right:  parent.right
+            anchors.margins: UI.panelMargin
+
+            // Animated so preset switches feel intentional rather than jarring.
+            height: UI.panelThickness
+            Behavior on height { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+
+            radius:  HyprUITheme.active.rounding
+            color:   HyprUITheme.active.background
             opacity: 0.95
-            
+
             border.color: Qt.rgba(HyprUITheme.primary.r, HyprUITheme.primary.g, HyprUITheme.primary.b, 0.4)
             border.width: 1
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 18 
-                anchors.rightMargin: 25 
-                spacing: 30 
+                // Inner margins scale proportionally with the bar so content
+                // never feels cramped at small or wasteful at large.
+                anchors.leftMargin:  UI.panelMargin * 2
+                anchors.rightMargin: Math.round(UI.panelMargin * 2.67)
+                spacing: Math.round(UI.panelThickness * 0.67)
 
-                // Left: Workspaces
+                // ── Left: Workspaces ────────────────────────────────────────
                 RowLayout {
-                    spacing: 12 
+                    spacing: Math.round(UI.panelMargin * 1.33)
+
                     Repeater {
                         model: Hypr.workspaces.values
-                        
+
                         Rectangle {
                             id: wsRect
-                            implicitWidth: 26
-                            implicitHeight: 26
-                            // Reverted radius to 0 for squares
+                            implicitWidth:  UI.wsSize
+                            implicitHeight: UI.wsSize
                             radius: 0
-                            color: modelData.id === Hypr.activeWsId ? HyprUITheme.primary : HyprUITheme.active.surface
-                            
+                            color: modelData.id === Hypr.activeWsId
+                                   ? HyprUITheme.primary
+                                   : HyprUITheme.active.surface
+
                             Text {
                                 anchors.centerIn: parent
-                                text: modelData.id
-                                color: modelData.id === Hypr.activeWsId ? HyprUITheme.active.background : HyprUITheme.active.text
-                                font.family: "MesloLGS NF"
-                                font.pixelSize: 12
-                                font.bold: true
+                                text:       modelData.id
+                                color:      modelData.id === Hypr.activeWsId
+                                            ? HyprUITheme.active.background
+                                            : HyprUITheme.active.text
+                                font.family:    "MesloLGS NF"
+                                font.pixelSize: UI.fontSize.sm
+                                font.bold:      true
                             }
-                            
+
                             MouseArea {
                                 anchors.fill: parent
                                 onClicked: Hypr.dispatch("workspace " + modelData.id)
@@ -103,59 +117,61 @@ Scope {
                     }
                 }
 
+                // ── Centre: Active window title ─────────────────────────────
                 Text {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
-                    text: Hypr.activeToplevel?.title || "Desktop"
-                    color: HyprUITheme.active.text
-                    font.family: "MesloLGS NF"
-                    font.pixelSize: 14
-                    elide: Text.ElideRight
-                    font.bold: true
+                    text:           Hypr.activeToplevel?.title || "Desktop"
+                    color:          HyprUITheme.active.text
+                    font.family:    "MesloLGS NF"
+                    font.pixelSize: UI.fontSize.md
+                    elide:          Text.ElideRight
+                    font.bold:      true
                 }
 
-                // Right: Status Icons
+                // ── Right: Status icons ─────────────────────────────────────
                 RowLayout {
-                    spacing: 20 
-                    
+                    spacing: Math.round(UI.panelThickness * 0.43)
+
                     // System Tray
                     RowLayout {
-                        spacing: 12 
+                        spacing: Math.round(UI.panelMargin * 1.33)
+
                         Repeater {
                             model: SystemTray.items.values
                             delegate: Item {
                                 id: trayItemRoot
-                                implicitWidth: 24
-                                implicitHeight: 24
-                                
+                                implicitWidth:  UI.iconSize
+                                implicitHeight: UI.iconSize
+
                                 Image {
                                     anchors.fill: parent
-                                    source: modelData.icon || ""
-                                    fillMode: Image.PreserveAspectFit
+                                    source:       modelData.icon || ""
+                                    fillMode:     Image.PreserveAspectFit
                                 }
-                                
+
                                 MouseArea {
                                     anchors.fill: parent
                                     acceptedButtons: Qt.LeftButton | Qt.RightButton
                                     hoverEnabled: true
                                     onClicked: (mouse) => {
                                         if (mouse.button === Qt.LeftButton) {
-                                            modelData.activate();
+                                            modelData.activate()
                                         } else {
-                                            var windowPos = trayItemRoot.mapToItem(win.contentItem, mouse.x, mouse.y);
-                                            modelData.display(win, windowPos.x, windowPos.y);
+                                            const p = trayItemRoot.mapToItem(win.contentItem, mouse.x, mouse.y)
+                                            modelData.display(win, p.x, p.y)
                                         }
                                     }
                                     onEntered: trayTooltip.requestShow()
-                                    onExited: trayTooltip.requestHide()
+                                    onExited:  trayTooltip.requestHide()
                                 }
-                                
+
                                 Tooltip {
-                                    id: trayTooltip
-                                    text: modelData.title || modelData.id
+                                    id:          trayTooltip
+                                    text:        modelData.title || modelData.id
                                     orientation: "bottom"
-                                    parent: win.contentItem
-                                    target: trayItemRoot
+                                    parent:      win.contentItem
+                                    target:      trayItemRoot
                                 }
                             }
                         }
@@ -163,134 +179,147 @@ Scope {
 
                     // Network
                     Text {
-                        id: networkText
+                        id:   networkText
                         text: Network.wifiEnabled ? (Network.active ? "󰖩" : "󰖩") : "󰖪"
                         color: Network.active ? HyprUITheme.primary : HyprUITheme.active.text
-                        font.family: "MesloLGS NF"
-                        font.pixelSize: 18 
-                        
+                        font.family:    "MesloLGS NF"
+                        font.pixelSize: UI.fontSize.lg
+
                         MouseArea {
                             anchors.fill: parent
                             onClicked: Quickshell.execDetached(["kitty", "-e", "nmtui"])
                             hoverEnabled: true
                             onEntered: wifiTooltip.requestShow()
-                            onExited: wifiTooltip.requestHide()
+                            onExited:  wifiTooltip.requestHide()
                         }
-                        
+
                         Tooltip {
-                            id: wifiTooltip
-                            text: Network.active ? "Connected: " + Network.active.ssid : "Disconnected"
+                            id:          wifiTooltip
+                            text:        Network.active ? "Connected: " + Network.active.ssid : "Disconnected"
                             orientation: "bottom"
-                            parent: win.contentItem
-                            target: networkText
+                            parent:      win.contentItem
+                            target:      networkText
                         }
                     }
-                    
+
                     // Bluetooth
                     Text {
-                        text: "󰂯"
-                        color: Bluetooth.defaultAdapter?.enabled ? HyprUITheme.primary : HyprUITheme.active.text
+                        text:    "󰂯"
+                        color:   Bluetooth.defaultAdapter?.enabled ? HyprUITheme.primary : HyprUITheme.active.text
                         opacity: 0.8
-                        font.family: "MesloLGS NF"
-                        font.pixelSize: 18 
+                        font.family:    "MesloLGS NF"
+                        font.pixelSize: UI.fontSize.lg
+
                         MouseArea {
                             anchors.fill: parent
                             acceptedButtons: Qt.LeftButton | Qt.RightButton
                             onClicked: (mouse) => {
                                 if (mouse.button === Qt.LeftButton) {
-                                    Quickshell.execDetached(["/home/sohighman/.config/hypr/scripts/bluetooth-control.sh", "toggle"]);
+                                    Quickshell.execDetached(["/home/sohighman/.config/hypr/scripts/bluetooth-control.sh", "toggle"])
                                 } else {
-                                    Quickshell.execDetached(["blueberry"]);
+                                    Quickshell.execDetached(["blueberry"])
                                 }
                             }
                         }
                     }
-                    
+
                     // Audio
                     Text {
-                        id: audioText
-                        text: Audio.muted ? "󰝟" : "󰕾"
+                        id:    audioText
+                        text:  Audio.muted ? "󰝟" : "󰕾"
                         color: Audio.muted ? HyprUITheme.active.error : HyprUITheme.primary
-                        font.family: "MesloLGS NF"
-                        font.pixelSize: 18 
-                        
+                        font.family:    "MesloLGS NF"
+                        font.pixelSize: UI.fontSize.lg
+
                         MouseArea {
                             anchors.fill: parent
                             onClicked: Quickshell.execDetached(["pavucontrol"])
                             hoverEnabled: true
                             onEntered: audioTooltip.requestShow()
-                            onExited: audioTooltip.requestHide()
+                            onExited:  audioTooltip.requestHide()
                         }
-                        
+
                         Tooltip {
-                            id: audioTooltip
-                            text: "Volume: " + Math.round(Audio.volume * 100) + "%"
+                            id:          audioTooltip
+                            text:        "Volume: " + Math.round(Audio.volume * 100) + "%"
                             orientation: "bottom"
-                            parent: win.contentItem
-                            target: audioText
+                            parent:      win.contentItem
+                            target:      audioText
                         }
                     }
 
                     // Battery
                     Text {
-                        id: battText
+                        id:      battText
                         visible: UPower.displayDevice.isLaptopBattery
-                        readonly property bool isCharging: UPower.displayDevice.state === UPowerDeviceState.Charging || UPower.displayDevice.state === UPowerDeviceState.FullyCharged
+
+                        readonly property bool isCharging:
+                            UPower.displayDevice.state === UPowerDeviceState.Charging ||
+                            UPower.displayDevice.state === UPowerDeviceState.FullyCharged
                         readonly property real percentage: UPower.displayDevice.percentage * 100
-                        
+
                         text: {
                             if (isCharging) return " " + Math.round(percentage) + "%"
                             const icons = ["", "", "", "", ""]
-                            const index = Math.min(Math.floor(percentage / 20), 4)
-                            return icons[index] + " " + Math.round(percentage) + "%"
+                            return icons[Math.min(Math.floor(percentage / 20), 4)] + " " + Math.round(percentage) + "%"
                         }
-                        
-                        color: isCharging ? HyprUITheme.active.green : (percentage <= 15 ? HyprUITheme.active.error : (percentage <= 30 ? HyprUITheme.secondary : HyprUITheme.active.green))
-                        font.family: "MesloLGS NF"
-                        font.pixelSize: 14
-                        font.bold: true
-                        
+                        color: isCharging
+                               ? HyprUITheme.active.green
+                               : (percentage <= 15 ? HyprUITheme.active.error
+                               : (percentage <= 30 ? HyprUITheme.secondary
+                               : HyprUITheme.active.green))
+                        font.family:    "MesloLGS NF"
+                        font.pixelSize: UI.fontSize.md
+                        font.bold:      true
+
                         MouseArea {
                             anchors.fill: parent
                             hoverEnabled: true
                             onEntered: battTooltip.requestShow()
-                            onExited: battTooltip.requestHide()
+                            onExited:  battTooltip.requestHide()
                         }
 
                         Tooltip {
-                            id: battTooltip
-                            text: (UPower.onBattery ? "Remaining: " : "Time to Full: ") + root.formatSeconds(UPower.onBattery ? UPower.displayDevice.timeToEmpty : UPower.displayDevice.timeToFull)
+                            id:          battTooltip
+                            text:        (UPower.onBattery ? "Remaining: " : "Time to Full: ") +
+                                         root.formatSeconds(UPower.onBattery
+                                             ? UPower.displayDevice.timeToEmpty
+                                             : UPower.displayDevice.timeToFull)
                             orientation: "bottom"
-                            parent: win.contentItem
-                            target: battText
+                            parent:      win.contentItem
+                            target:      battText
                         }
                     }
 
                     // Night Light
                     Text {
-                        text: "󱩍"
+                        text:  "󱩍"
                         color: HyprUITheme.active.text
-                        font.family: "MesloLGS NF"
-                        font.pixelSize: 18 
+                        font.family:    "MesloLGS NF"
+                        font.pixelSize: UI.fontSize.lg
+
                         MouseArea {
                             anchors.fill: parent
                             onClicked: Quickshell.execDetached(["/home/sohighman/Documentos/Scripts/toggle_night_light.sh"])
                         }
                     }
-                    
+
+                    // Clock
                     Text {
-                        text: Time.timeStr
-                        color: HyprUITheme.active.text
-                        font.family: "MesloLGS NF"
-                        font.pixelSize: 14
-                        font.bold: true
+                        text:           Time.timeStr
+                        color:          HyprUITheme.active.text
+                        font.family:    "MesloLGS NF"
+                        font.pixelSize: UI.fontSize.md
+                        font.bold:      true
                     }
-                    
+
+                    // Power / logout
                     Text {
-                        text: ""
+                        text:  ""
                         color: HyprUITheme.active.error
-                        font.family: "MesloLGS NF"
-                        font.pixelSize: 18 
+                        font.family:    "MesloLGS NF"
+                        font.pixelSize: UI.fontSize.lg
+
                         MouseArea {
                             anchors.fill: parent
                             onClicked: Quickshell.execDetached(["wlogout"])

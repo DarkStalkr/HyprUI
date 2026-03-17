@@ -11,11 +11,40 @@ Scope {
 
     property var activeNotif: null
     property var queue: []
+    property bool alive: true
+
+    // Snapshot properties to avoid dangling QObject references
+    property string currentSummary: ""
+    property string currentBody: ""
+    property string currentAppName: ""
+    property string currentAppIcon: ""
+    property string currentImage: ""
+    property var currentTime: new Date()
+
+    onActiveNotifChanged: {
+        if (activeNotif) {
+            currentSummary = activeNotif.summary || "";
+            currentBody = activeNotif.body || "";
+            currentAppName = activeNotif.appName || "System";
+            currentAppIcon = activeNotif.appIcon || "";
+            currentImage = activeNotif.image || "";
+            currentTime = activeNotif.time || new Date();
+        }
+    }
+
+    Component.onDestruction: {
+        alive = false;
+        activeNotif = null;
+        displayTimer.stop();
+        nextTimer.stop();
+        closeGuardTimer.stop();
+    }
     
     // Watch the notifications list from service
     Connections {
         target: Notifications
         function onNotificationsChanged() {
+            if (!root.alive) return;
             const list = Notifications.notifications;
             if (list.length > 0) {
                 // If we have new items, add them to our queue if they aren't already there or currently active
@@ -34,16 +63,24 @@ Scope {
     }
 
     function processQueue() {
+        if (!root.alive) return;
         if (!activeNotif && queue.length > 0) {
             activeNotif = queue.shift();
             displayTimer.restart();
+            closeGuardTimer.stop();
         }
     }
 
     function discard() {
+        if (!root.alive) return;
         if (activeNotif) {
             Notifications.remove(activeNotif.id);
             activeNotif = null;
+            
+            // Start the guard timer to prevent the PanelWindow from closing immediately
+            // if another notification is queued and about to be processed.
+            closeGuardTimer.restart();
+            
             // Short delay before showing next one to allow exit animation to complete
             nextTimer.restart();
         }
@@ -53,7 +90,7 @@ Scope {
         id: displayTimer
         interval: 3000 // 3 seconds as requested
         onTriggered: {
-            if (typeof root !== "undefined" && root !== null) {
+            if (root.alive) {
                 discard();
             }
         }
@@ -63,16 +100,22 @@ Scope {
         id: nextTimer
         interval: 500 // Delay between notifications
         onTriggered: {
-            if (typeof root !== "undefined" && root !== null) {
+            if (root.alive) {
                 processQueue();
             }
         }
     }
 
+    Timer {
+        id: closeGuardTimer
+        interval: 50 // Buffer to prevent close-during-incubation
+        onTriggered: {}
+    }
+
     PanelWindow {
         id: win
         screen: root.screen
-        visible: activeNotif !== null || exitAnimation.running
+        visible: (activeNotif !== null || exitAnimation.running || closeGuardTimer.running) && root.alive
         
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "hyprui-notifications"
@@ -150,9 +193,8 @@ Scope {
                             anchors.fill: parent
                             anchors.margins: 4
                             source: {
-                                if (!activeNotif) return "";
-                                if (activeNotif.image) return activeNotif.image;
-                                if (activeNotif.appIcon) return Quickshell.iconPath(activeNotif.appIcon);
+                                if (currentImage !== "") return currentImage;
+                                if (currentAppIcon !== "") return Quickshell.iconPath(currentAppIcon);
                                 return "";
                             }
                             fillMode: Image.PreserveAspectFit
@@ -175,7 +217,7 @@ Scope {
                         RowLayout {
                             Layout.fillWidth: true
                             Text {
-                                text: activeNotif ? (activeNotif.appName || "System") : ""
+                                text: currentAppName
                                 color: HyprUITheme.primary
                                 font.family: "MesloLGS NF"
                                 font.pixelSize: 11
@@ -184,7 +226,7 @@ Scope {
                             }
                             Item { Layout.fillWidth: true }
                             Text {
-                                text: activeNotif ? Qt.formatTime(activeNotif.time, "hh:mm") : ""
+                                text: Qt.formatTime(currentTime, "hh:mm")
                                 color: HyprUITheme.active.text
                                 font.family: "MesloLGS NF"
                                 font.pixelSize: 11
@@ -193,7 +235,7 @@ Scope {
                         }
 
                         Text {
-                            text: activeNotif ? activeNotif.summary : ""
+                            text: currentSummary
                             color: HyprUITheme.active.text
                             font.family: "MesloLGS NF"
                             font.pixelSize: 15
@@ -203,7 +245,7 @@ Scope {
                         }
                         
                         Text {
-                            text: activeNotif ? activeNotif.body : ""
+                            text: currentBody
                             color: HyprUITheme.active.text
                             font.family: "MesloLGS NF"
                             font.pixelSize: 13
