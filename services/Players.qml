@@ -9,12 +9,16 @@ Singleton {
     id: root
 
     readonly property list<MprisPlayer> list: Mpris.players.values
-    readonly property MprisPlayer active: props.manualActive ?? list[0] ?? null
-    property alias manualActive: props.manualActive
-
+    readonly property MprisPlayer active: {
+        if (props.manualActiveIdentity) {
+            const found = list.find(p => p.identity === props.manualActiveIdentity);
+            if (found) return found;
+        }
+        return list[0] ?? null;
+    }
     PersistentProperties {
         id: props
-        property MprisPlayer manualActive
+        property string manualActiveIdentity: ""
         reloadableId: "players"
     }
 

@@ -62,15 +62,13 @@ Singleton {
     }
 
     Timer {
+        id: brightnessTimer
         interval: 2000
         running: true
         repeat: true
-        onTriggered: {
-            if (typeof root !== "undefined" && root !== null) {
-                update();
-            }
-        }
+        onTriggered: update()
     }
 
     Component.onCompleted: update()
+    Component.onDestruction: brightnessTimer.stop()
 }

@@ -39,15 +39,14 @@ Scope {
         }
     }
 
+    Component.onDestruction: {
+        hideTimer.stop();
+    }
+
     Timer {
         id: hideTimer
         interval: 1800
-        onTriggered: {
-            // Prevent crash if the OSD was destroyed by screen disconnect
-            if (typeof root !== "undefined" && root !== null) {
-                root.active = false;
-            }
-        }
+        onTriggered: root.active = false
     }
 
     PanelWindow {

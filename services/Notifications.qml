@@ -26,7 +26,6 @@ Singleton {
                 appIcon: notif.appIcon,
                 image: notif.image || (notif.hints && notif.hints["image-path"]) || "",
                 time: new Date(),
-                notif: notif,
                 expired: false
             };
             

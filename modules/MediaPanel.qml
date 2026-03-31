@@ -24,19 +24,23 @@ Scope {
         }
     }
 
+    Component.onDestruction: {
+        showDelayTimer.stop();
+        hideTimer.stop();
+    }
+
     Timer {
         id: showDelayTimer
         interval: 3000 // Debounce show to avoid flickering during metadata changes (e.g. YouTube hovering)
         onTriggered: {
-            if (typeof root !== "undefined" && root !== null) {
-                root.active = true;
-                hideTimer.restart();
-            }
+            root.active = true;
+            hideTimer.restart();
         }
     }
 
     Connections {
         target: player
+        enabled: player !== null
         function onMetadataChanged() { triggerShow(); }
         function onIsPlayingChanged() { triggerShow(); }
         function onPostTrackChanged() { triggerShow(); }
@@ -45,11 +49,7 @@ Scope {
     Timer {
         id: hideTimer
         interval: 5000
-        onTriggered: {
-            if (typeof root !== "undefined" && root !== null) {
-                root.active = false;
-            }
-        }
+        onTriggered: root.active = false
     }
 
     PanelWindow {

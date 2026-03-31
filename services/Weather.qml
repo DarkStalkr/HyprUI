@@ -11,6 +11,7 @@ Singleton {
     property var cc: null
     property list<var> forecast: []
     property list<var> hourlyForecast: []
+    property int _requestGen: 0
 
     readonly property string icon: cc ? Icons.getWeatherIcon(cc.weatherCode) : "cloud_alert"
     readonly property string description: cc?.weatherDesc ?? qsTr("No weather")
@@ -23,15 +24,16 @@ Singleton {
 
     function reload(): void {
         console.log("Weather: Reloading data...");
-        // Simple autodetection via ipinfo for now
+        const gen = ++root._requestGen;
         Requests.get("https://ipinfo.io/json", function(text) {
+            if (gen !== root._requestGen) return;
             try {
                 var response = JSON.parse(text);
                 console.log("Weather: ipinfo.io response:", JSON.stringify(response, null, 2));
                 if (response.loc) {
                     loc = response.loc;
                     city = response.city ?? "";
-                    fetchWeatherData();
+                    fetchWeatherData(gen);
                 } else {
                     console.error("Weather: ipinfo.io did not return location data.");
                 }
@@ -43,7 +45,7 @@ Singleton {
         });
     }
 
-    function fetchWeatherData(): void {
+    function fetchWeatherData(gen): void {
         if (!loc) {
             console.warn("Weather: No location (loc) available to fetch weather data.");
             return;
@@ -53,6 +55,7 @@ Singleton {
         console.log("Weather: Fetching weather data from:", url);
 
         Requests.get(url, function(text) {
+            if (gen !== root._requestGen) return;
             try {
                 var json = JSON.parse(text);
                 console.log("Weather: open-meteo.com response:", JSON.stringify(json, null, 2));
@@ -118,10 +121,6 @@ Singleton {
         interval: 1800000 // 30 mins
         running: true
         repeat: true
-        onTriggered: {
-            if (typeof root !== "undefined" && root !== null) {
-                reload();
-            }
-        }
+        onTriggered: reload()
     }
 }

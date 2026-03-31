@@ -37,15 +37,15 @@ Item {
         }
     }
 
+    Component.onDestruction: showTimer.stop()
+
     Timer {
         id: showTimer
         interval: root.delay
         onTriggered: {
-            if (typeof root !== "undefined" && root !== null) {
-                root.updatePosition();
-                root.visible = true;
-                root.opacity = 1;
-            }
+            root.updatePosition();
+            root.visible = true;
+            root.opacity = 1;
         }
     }
     
